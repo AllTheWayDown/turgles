@@ -1,0 +1,1 @@
+https://pyglet.googlecode.com/files/pyglet-1.2alpha1.tar.gz

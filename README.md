@@ -3,6 +3,8 @@ turgles
 
 OpenGL ES backend for python turtle module
 
+Status: experimenting, pre-pre-pre alpha
+
 Goals:
  1. Drop in\* renderer for stdlib turtle module
  2. RaspPi compatible
@@ -13,3 +15,12 @@ Goals:
 
 
 \* probably via monkey patching, as turtle module is only partially extensible
+
+
+Development
+===========
+
+
+    virtualenv -p python3.2 turgles
+    pip install -r requirements.txt
+
