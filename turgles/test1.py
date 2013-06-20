@@ -43,7 +43,7 @@ def gen_world():
         yield random() * world_size - half_size
         yield random() * world_size - half_size
         yield random() * 360.0
-        yield turtle_size
+        yield 1.0
 
 turtle_model = list(gen_world())
 
@@ -56,7 +56,7 @@ total_count = len(turtle_geom_data)
 program = Program(
 '''
     #define DEG_TO_RAD(x) (x) * 0.017453292519943295
-    uniform vec2 scale;
+    uniform vec4 scale;
     attribute vec4 vertex;
     attribute vec4 turtle;
 
@@ -65,12 +65,12 @@ program = Program(
         float theta = DEG_TO_RAD(turtle.z);
         float ct = cos(theta);
         float st = sin(theta);
-        float x = turtle.w / scale.x;
-        float y = turtle.w / scale.y;
-        mat4 model = mat4(ct * x, -st * y,  0.0, turtle.x / scale.x,
-                          st * x,  ct * y,  0.0, turtle.y / scale.y,
-                          0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 1.0);
+        mat4 model = mat4(
+            ct * scale.z, -st * scale.w,  0.0, turtle.x / scale.x,
+            st * scale.z,  ct * scale.w,  0.0, turtle.y / scale.y,
+            0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        );
         gl_Position = vertex * model;
     }''',
 
@@ -89,7 +89,12 @@ turtle_attr = glGetAttribLocation(program.id, b"turtle")
 
 # initialise
 program.bind()
-program.uniforms['scale'].set(half_size, half_size)
+program.uniforms['scale'].set(
+    half_size,  # x scale
+    half_size,  # y scale
+    turtle_size / half_size,  # turtle x size
+    turtle_size / half_size,  # turtle y size
+)
 # TODO view matrix
 
 vertices = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STATIC_DRAW)
