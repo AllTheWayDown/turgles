@@ -1,17 +1,17 @@
-from random import randint
-
+from random import randint, random, expovariate
+from math import radians, sin, cos, pi
 import pyglet
 
 from gles20 import *  # NOQA
 
-from shader import Program
-from buffer import Buffer
+from shader import Program, Buffer
 
-world_size = 400.0
-turtle_size = 10.0
-num_turtles = 50
+world_size = 800.0
+half_size = world_size / 2
+turtle_size = 5.0
+num_turtles = 1000
 
-window = pyglet.window.Window(width=400, height=400)
+window = pyglet.window.Window(width=int(world_size), height=int(world_size))
 
 
 turtle_geom_quad = [
@@ -28,18 +28,16 @@ turtle_geom_arrow = [
      1.0, -1.0, 0.0, 1.0,
 ]
 
-
-vertices = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STATIC_DRAW)
-vertices.load(turtle_geom_arrow)
-
 # world coords
-turtle_model = [
-    (randint(0, world_size - 10) - world_size / 2,
-     randint(0, world_size - 10) - world_size / 2,
-     float(randint(0, 360)),
-     5.5) for i in range(num_turtles)]
+def gen_world():
+    return [
+        [randint(-half_size, half_size),
+         randint(-half_size, half_size),
+         float(randint(0, 360)),
+         turtle_size] for i in range(num_turtles)]
 
-turtle_data_size = len(turtle_model[0])
+turtle_model = gen_world()
+
 
 
 program = Program(
@@ -51,7 +49,8 @@ program = Program(
 
     void main()
     {
-        float theta = DEG_TO_RAD(turtle.z);
+        // adjust to turtle world view by rotating by 90
+        float theta = DEG_TO_RAD(turtle.z - 90.0);
         float ct = cos(theta);
         float st = sin(theta);
         float x = turtle.w / scale.x;
@@ -77,22 +76,47 @@ vertex_attr = glGetAttribLocation(program.id, b"vertex")
 
 # initialise
 program.bind()
+program.uniforms['scale'].set(half_size, half_size)
+
+vertices = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STATIC_DRAW)
+vertices.load(turtle_geom_arrow)
+vertices.bind(vertex_attr)
+
 turtle_set = program.uniforms['turtle'].set
-program.uniforms['scale'].set(200.0, 200.0)
-program.unbind()
+fps_display = pyglet.clock.ClockDisplay()
 
 @window.event
 def on_draw():
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    program.bind()
-    vertices.bind()
-    glEnableVertexAttribArray(vertex_attr)
-    glVertexAttribPointer(vertex_attr, 4, GL_FLOAT, GL_FALSE, 0, 0)
-
+    window.clear()
     for turtle in turtle_model:
         turtle_set(*turtle)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
+    print(pyglet.clock.get_fps())
 
-    glDisableVertexAttribArray(vertex_attr)
+
+speed = 50.0
+degrees = 20.0
+lambd = 1.0 / degrees
+half_degrees = degrees / 2
+
+def update(dt):
+    magnitude = speed * dt
+    for turtle in turtle_model:
+        turtle[2] += expovariate(lambd) - degrees
+        theta = radians(turtle[2])
+        dy = magnitude * sin(theta)
+        dx = magnitude * cos(theta)
+        turtle[0] += dx
+        turtle[1] += dy
+        if turtle[0] > half_size:
+            turtle[0] -= world_size
+        elif turtle[0] < -half_size:
+            turtle[0] += world_size
+        if turtle[1] > half_size:
+            turtle[1] -= world_size
+        elif turtle[1] < -half_size:
+            turtle[1] += world_size
+
+pyglet.clock.schedule_interval(update, 0.025)
 
 pyglet.app.run()

@@ -1,4 +1,10 @@
-from ctypes import byref, c_int, pointer, create_string_buffer
+from ctypes import (
+    byref,
+    c_int,
+    create_string_buffer,
+    pointer,
+    sizeof,
+)
 from gles20 import *  # NOQA
 
 from util import (
@@ -87,11 +93,34 @@ class Uniform(object):
         self._setter(self.index, *data)
 
 
-class Attribute(object):
+class Buffer(object):
 
-    def __init__(self, program_id, index):
-        pass
+    TYPE_FLAGS = {
+        GLfloat: GL_FLOAT,
+        GLint: GL_INT,
+        }
 
+    def __init__(self, element_type, array_type, draw_type):
+        self.element_type = element_type
+        self.element_flag = self.TYPE_FLAGS[element_type]
+        self.array_type = array_type
+        self.draw_type = draw_type
+
+        self.id = GLuint()
+        glGenBuffers(1, self.id)
+
+    def bind(self, index, size=4, interpolate=GL_FALSE, stride=0, offset=0):
+        glBindBuffer(self.array_type, self.id)
+        glEnableVertexAttribArray(index)
+        glVertexAttribPointer(
+            index, size, self.element_flag, interpolate, stride, offset)
+        glBindBuffer(self.array_type, 0)
+
+    def load(self, python_data):
+        data = (self.element_type * len(python_data))(*python_data)
+        glBindBuffer(self.array_type, self.id)
+        glBufferData(self.array_type, sizeof(data), data, self.draw_type)
+        glBindBuffer(self.array_type, 0)
 
 class Program:
     """Shader program abstraction"""
