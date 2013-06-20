@@ -8,32 +8,20 @@ from util import (
     ShaderError,
 )
 
-
-def get_uniform_data(program_id, name):
-    """Gets the metadata for a uniform variable"""
-    name = name.encode('ascii')
-    index = glGetUniformLocation(program_id, name)
-    n = 64
-    bufsize = GLsizei(n)
-    length = pointer(GLsizei(0))
-    size = pointer(GLint(0))
-    type = pointer(GLenum(0))
-    uname = create_string_buffer(n)
-    glGetActiveUniform(program_id, index, bufsize, length, size, type, uname)
-    assert name == uname.value
-    return Uniform(name, index, size[0], type[0])
-
-
 class Uniform(object):
-    """Metadata for a uniform shader variable"""
+    """Represents a shader uniform"""
 
     UNIFORM_TYPES = {
+        GL_FLOAT: (GLfloat, 1),
         GL_FLOAT_VEC2: (GLfloat, 2),
         GL_FLOAT_VEC3: (GLfloat, 3),
         GL_FLOAT_VEC4: (GLfloat, 4),
+        GL_INT: (GLint, 1),
         GL_INT_VEC2: (GLint, 2),
         GL_INT_VEC3: (GLint, 3),
         GL_INT_VEC4: (GLint, 4),
+        # TODO
+        GL_BOOL: (GLboolean, 1),
         GL_BOOL_VEC2: (GLboolean, 2),
         GL_BOOL_VEC3: (GLboolean, 3),
         GL_BOOL_VEC4: (GLboolean, 4),
@@ -42,35 +30,15 @@ class Uniform(object):
         GL_FLOAT_MAT4: (GLfloat, 4 * 4),
     }
 
-    def __init__(self, name, index, size, type_):
-        self.name = name
-        self.index = index
-        self.size = size
-        self.type = type_
-        self.gl_type, self.length = self.UNIFORM_TYPES.get(type_, (None, None))
-        if not self.gl_type:
-            raise ShaderError("Unknown uniform type: %s" % type_)
-        self.ctype = self.gl_type * self.length
-
-    def __eq__(self, other):
-        return self.index == other.index
-
-    def cvalue(self, *data):
-        """Convert values in data to approriate c type"""
-        return self.ctype(*(data[:self.length]))
-
-
-class ShaderVariables(object):
-    """Cached storage for shader variables"""
     SETTERS = {
-        (GLfloat, 1): glUniform1f,
-        (GLfloat, 2): glUniform2f,
-        (GLfloat, 3): glUniform3f,
-        (GLfloat, 4): glUniform4f,
-        (GLint, 1): glUniform1i,
-        (GLint, 2): glUniform2i,
-        (GLint, 3): glUniform3i,
-        (GLint, 4): glUniform4i,
+        GL_FLOAT: glUniform1f,
+        GL_FLOAT_VEC2: glUniform2f,
+        GL_FLOAT_VEC3: glUniform3f,
+        GL_FLOAT_VEC4: glUniform4f,
+        GL_INT: glUniform1i,
+        GL_INT_VEC2: glUniform2i,
+        GL_INT_VEC3: glUniform3i,
+        GL_INT_VEC4: glUniform4i,
     }
 
     GETTERS = {
@@ -78,29 +46,51 @@ class ShaderVariables(object):
         GLint: glGetUniformiv,
     }
 
-    def __init__(self, program_id):
-        self.id = program_id
-        self.variables = {}
+    def __init__(self, program_id, index):
+        self.program_id = program_id
+        self.index = index
+        self.size, self.type, self.cname = self.load_uniform(program_id, index)
+        self.name = self.cname.decode('utf8')
+        # unpack type constant
+        self.item_type, self.length = self.UNIFORM_TYPES[self.type]
+        # ctypes type to use
+        self.ctype = self.item_type * self.length
+        # setup correct gl functions to access
+        self._getter = self.GETTERS[self.item_type]
+        self._setter = self.SETTERS[self.type]
 
-    def get_uniform(self, name):
-        uniform = self.variables.get(name, None)
-        if uniform is None:
-            uniform = get_uniform_data(self.id, name)
-            self.variables[name] = uniform
-        return uniform
+    @staticmethod
+    def load_uniform(program_id, index):
+        """Loads the meta data for one uniform"""
+        n = 64  # max uniform length
+        bufsize = GLsizei(n)
+        length = pointer(GLsizei(0))
+        size = pointer(GLint(0))
+        type = pointer(GLenum(0))
+        uname = create_string_buffer(n)
+        glGetActiveUniform(
+            program_id, index, bufsize, length, size, type, uname)
+        return size[0], type[0], uname.value
 
-    def __getitem__(self, key):
-        uniform = self.get_uniform(key)
-        params = uniform.cvalue(0.0, 0.0, 0.0, 0.0)
-        get = self.GETTERS[uniform.gl_type]
-        get(self.id, uniform.index, params)
+    def __eq__(self, other):
+        return self.index == other.index
+
+    def get(self):
+        params = self.ctype(*([0.0] * self.length))
+        self._getter(self.program_id, self.index, params)
         return params
 
-    def __setitem__(self, key, value):
-        uniform = self.get_uniform(key)
-        data = uniform.cvalue(*value)
-        set = self.SETTERS[(uniform.gl_type, uniform.length)]
-        set(uniform.index, *data)
+    def set(self, *data):
+        if len(data) != self.length:
+            raise ShaderError("Uniform '%s' is of length %d, not %d" %(
+                self.name, self.length, len(data)))
+        self._setter(self.index, *data)
+
+
+class Attribute(object):
+
+    def __init__(self, program_id, index):
+        pass
 
 
 class Program:
@@ -111,8 +101,16 @@ class Program:
         self.create_shader(vertex, GL_VERTEX_SHADER)
         self.create_shader(fragment, GL_FRAGMENT_SHADER)
         self.compile()
-        self.uniforms = ShaderVariables(self.id)
-        self.attributes = ShaderVariables(self.id)
+        self.bind()
+
+        self.uniforms = {}
+        uniform_count = pointer(GLint(0))
+        glGetProgramiv(self.id, GL_ACTIVE_UNIFORMS, uniform_count)
+        for index in range(uniform_count[0]):
+            uniform = Uniform(self.id, index)
+            self.uniforms[uniform.name] = uniform
+
+        self.unbind()
 
     def create_shader(self, src, type):
         shader_id = glCreateShader(type)

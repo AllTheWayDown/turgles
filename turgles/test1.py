@@ -1,6 +1,7 @@
 from random import randint
 
 import pyglet
+
 from gles20 import *  # NOQA
 
 from shader import Program
@@ -35,7 +36,7 @@ vertices.load(turtle_geom_arrow)
 turtle_model = [
     (randint(0, world_size - 10) - world_size / 2,
      randint(0, world_size - 10) - world_size / 2,
-     randint(0, 360),
+     float(randint(0, 360)),
      5.5) for i in range(num_turtles)]
 
 turtle_data_size = len(turtle_model[0])
@@ -43,11 +44,10 @@ turtle_data_size = len(turtle_model[0])
 
 program = Program(
 '''
-    #version 110
     #define DEG_TO_RAD(x) (x) * 0.017453292519943295
-    attribute vec4 vertex;
-    uniform vec2 scale;
     uniform vec4 turtle;
+    uniform vec2 scale;
+    attribute vec4 vertex;
 
     void main()
     {
@@ -64,7 +64,6 @@ program = Program(
     }''',
 
 '''
-    #version 110
     void main()
     {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -76,6 +75,12 @@ glClearColor(1.0, 1.0, 1.0, 0.0)
 vertex_attr = glGetAttribLocation(program.id, b"vertex")
 
 
+# initialise
+program.bind()
+turtle_set = program.uniforms['turtle'].set
+program.uniforms['scale'].set(200.0, 200.0)
+program.unbind()
+
 @window.event
 def on_draw():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -84,10 +89,8 @@ def on_draw():
     glEnableVertexAttribArray(vertex_attr)
     glVertexAttribPointer(vertex_attr, 4, GL_FLOAT, GL_FALSE, 0, 0)
 
-    program.uniforms['scale'] = (200.0, 200.0)
-
     for turtle in turtle_model:
-        program.uniforms['turtle'] = turtle
+        turtle_set(*turtle)
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
 
     glDisableVertexAttribArray(vertex_attr)
