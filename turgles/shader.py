@@ -114,6 +114,8 @@ class Buffer(object):
         glEnableVertexAttribArray(index)
         glVertexAttribPointer(
             index, size, self.element_flag, interpolate, stride, offset)
+
+    def unbind(self):
         glBindBuffer(self.array_type, 0)
 
     def load(self, python_data):
