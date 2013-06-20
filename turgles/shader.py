@@ -109,7 +109,12 @@ class Buffer(object):
         self.id = GLuint()
         glGenBuffers(1, self.id)
 
-    def bind(self, index, size=4, interpolate=GL_FALSE, stride=0, offset=0,
+    def bind(self,
+            index,
+            size=4,
+            interpolate=GL_FALSE,
+            stride=0,
+            offset=0,
             divisor=None):
         glBindBuffer(self.array_type, self.id)
         glEnableVertexAttribArray(index)

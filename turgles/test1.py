@@ -9,7 +9,7 @@ from shader import Program, Buffer
 
 world_size = 800.0
 half_size = world_size / 2
-turtle_size = 5.0
+turtle_size = 10.0
 num_turtles = 1000
 
 window = pyglet.window.Window(width=int(world_size), height=int(world_size))
@@ -23,12 +23,19 @@ turtle_geom_quad = [
 ]
 
 turtle_geom_arrow = [
+    -1.0,  1.0, 0.0, 1.0,
+     1.0,  0.0, 0.0, 1.0,
+    -0.5,  0.0, 0.0, 1.0,
     -1.0, -1.0, 0.0, 1.0,
-     0.0,  1.0, 0.0, 1.0,
-     0.0, -0.5, 0.0, 1.0,
-     1.0, -1.0, 0.0, 1.0,
 ]
 
+turtle_geom_arrow2 = [
+    -1.0,  1.0, 0.0, 1.0,
+     1.0,  0.5, 0.0, 1.0,
+    -0.5,  0.0, 0.0, 1.0,
+     1.0,  -0.5, 0.0, 1.0,
+    -1.0, -1.0, 0.0, 1.0,
+]
 # world coords
 turtle_data_size = 4
 def gen_world():
@@ -40,7 +47,7 @@ def gen_world():
 
 turtle_model = list(gen_world())
 
-turtle_geom = turtle_geom_arrow
+turtle_geom = turtle_geom_arrow2
 num_vertex = len(turtle_geom) // 4
 # same geom for all turtles, for now
 turtle_geom_data = turtle_geom * len(turtle_model)
@@ -55,8 +62,7 @@ program = Program(
 
     void main()
     {
-        // adjust to turtle world view by rotating by 90
-        float theta = DEG_TO_RAD(turtle.z - 90.0);
+        float theta = DEG_TO_RAD(turtle.z);
         float ct = cos(theta);
         float st = sin(theta);
         float x = turtle.w / scale.x;
@@ -88,7 +94,7 @@ program.uniforms['scale'].set(half_size, half_size)
 
 vertices = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STATIC_DRAW)
 vertices.load(turtle_geom_data)
-vertices.bind(vertex_attr, num_vertex)
+vertices.bind(vertex_attr)
 
 turtles = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STREAM_READ)
 # initial load
