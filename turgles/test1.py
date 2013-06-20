@@ -88,7 +88,7 @@ program.uniforms['scale'].set(half_size, half_size)
 
 vertices = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STATIC_DRAW)
 vertices.load(turtle_geom_data)
-vertices.bind(vertex_attr)
+vertices.bind(vertex_attr, num_vertex)
 
 turtles = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STREAM_READ)
 # initial load
@@ -108,10 +108,7 @@ def on_draw():
     global draw_total, draw_count
     x = time()
     window.clear()
-    glBindBuffer(GL_ARRAY_BUFFER, turtles.id)
-    glVertexAttribPointer(turtle_attr, num_vertex, GL_FLOAT, GL_FALSE, 0 , 0)
-    glVertexAttribDivisor(turtle_attr, 1)
-    glEnableVertexAttribArray(turtle_attr)
+    turtles.bind(turtle_attr, turtle_data_size, divisor=1)
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, num_vertex, num_turtles)
     draw_total += time() -x
     draw_count += 1
@@ -151,7 +148,7 @@ def update(dt):
     load_total += time() - xtt
     load_count += 1
 
-pyglet.clock.schedule_interval(update, 0.025)
+pyglet.clock.schedule_interval(update, 1/30)
 
 pyglet.app.run()
 
