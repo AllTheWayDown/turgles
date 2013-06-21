@@ -11,8 +11,8 @@ from shader import Program, Buffer
 
 world_size = 800.0
 half_size = world_size / 2
-turtle_size = 5.0
-num_turtles = 10000
+turtle_size = 15.0
+num_turtles = 1000
 
 window = pyglet.window.Window(width=int(world_size), height=int(world_size))
 
@@ -45,7 +45,7 @@ def gen_world():
         yield random() * world_size - half_size
         yield random() * world_size - half_size
         yield random() * 360.0
-        yield turtle_size
+        yield turtle_size * random() + 1.0
 
 turtle_model = array('f', gen_world())
 
@@ -122,7 +122,7 @@ def on_draw():
     draw_count += 1
 
 speed = 50.0
-degrees = 20.0
+degrees = 15.0
 lambd = 1.0 / degrees
 half_degrees = degrees / 2
 
