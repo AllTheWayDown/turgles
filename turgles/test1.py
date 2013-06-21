@@ -1,7 +1,9 @@
 from random import randint, random, expovariate
 from math import radians, sin, cos, pi
 from time import time
+from array import array
 import pyglet
+from ctypes import sizeof
 
 from gles20 import *  # NOQA
 
@@ -10,7 +12,7 @@ from shader import Program, Buffer
 world_size = 800.0
 half_size = world_size / 2
 turtle_size = 5.0
-num_turtles = 1000
+num_turtles = 10000
 
 window = pyglet.window.Window(width=int(world_size), height=int(world_size))
 
@@ -45,12 +47,12 @@ def gen_world():
         yield random() * 360.0
         yield turtle_size
 
-turtle_model = list(gen_world())
+turtle_model = array('f', gen_world())
 
 turtle_geom = turtle_geom_arrow2
 num_vertex = len(turtle_geom) // 4
 # same geom for all turtles, for now
-turtle_geom_data = turtle_geom * len(turtle_model)
+turtle_geom_data = array('f', turtle_geom * len(turtle_model))
 total_count = len(turtle_geom_data)
 
 program = Program(
@@ -158,6 +160,7 @@ pyglet.clock.schedule_interval(update, 1/30)
 
 pyglet.app.run()
 
-print('draw', draw_total / draw_count * 1000)
-print('update', update_total / update_count * 1000)
-print('load', load_total / load_count * 1000)
+print('   fps: {:.3f}'.format(pyglet.clock.get_fps()))
+print('  draw: {:.3f} ms'.format(draw_total / draw_count * 1000))
+print('update: {:.3f} ms'.format(update_total / update_count * 1000))
+print('  load: {:.3f} ms'.format(load_total / load_count * 1000))

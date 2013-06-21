@@ -1,3 +1,4 @@
+from array import array
 from ctypes import (
     byref,
     c_int,
@@ -100,6 +101,11 @@ class Buffer(object):
         GLint: GL_INT,
         }
 
+    ARRAY_TYPE_CODES  = {
+        'f': GLfloat,
+        'l': GLint,
+    }
+
     def __init__(self, element_type, array_type, draw_type):
         self.element_type = element_type
         self.element_flag = self.TYPE_FLAGS[element_type]
@@ -126,10 +132,14 @@ class Buffer(object):
     def unbind(self):
         glBindBuffer(self.array_type, 0)
 
-    def load(self, python_data):
-        data = (self.element_type * len(python_data))(*python_data)
+    def load(self, data):
+        if not isinstance(data, array):
+            raise ShaderError("Buffer objects can only load arrays")
+        assert self.ARRAY_TYPE_CODES[data.typecode] == self.element_type
+        address, length = data.buffer_info()
+        size = length * data.itemsize
         glBindBuffer(self.array_type, self.id)
-        glBufferData(self.array_type, sizeof(data), data, self.draw_type)
+        glBufferData(self.array_type, size, address, self.draw_type)
         glBindBuffer(self.array_type, 0)
 
 class Program:
