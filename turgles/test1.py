@@ -1,43 +1,26 @@
 from random import randint, random, expovariate
 from math import radians, sin, cos, pi
 from time import time
-from array import array
 import pyglet
 from ctypes import sizeof
+
+from array import array
+from multiprocessing import Array
 
 from gles20 import *  # NOQA
 
 from shader import Program, Buffer
 
+from geometry import turtle_shapes
+
 world_size = 800.0
 half_size = world_size / 2
-turtle_size = 15.0
-num_turtles = 1000
+turtle_size = 50.0
+num_turtles = 10
+shape = 'turtle'
 
 window = pyglet.window.Window(width=int(world_size), height=int(world_size))
 
-
-turtle_geom_quad = [
-    -1.0, -1.0, 0.0, 1.0,
-    -1.0,  1.0, 0.0, 1.0,
-     1.0, -1.0, 0.0, 1.0,
-     1.0,  1.0, 0.0, 1.0,
-]
-
-turtle_geom_arrow = [
-    -1.0,  1.0, 0.0, 1.0,
-     1.0,  0.0, 0.0, 1.0,
-    -0.5,  0.0, 0.0, 1.0,
-    -1.0, -1.0, 0.0, 1.0,
-]
-
-turtle_geom_arrow2 = [
-    -1.0,  1.0, 0.0, 1.0,
-     1.0,  0.5, 0.0, 1.0,
-    -0.5,  0.0, 0.0, 1.0,
-     1.0,  -0.5, 0.0, 1.0,
-    -1.0, -1.0, 0.0, 1.0,
-]
 # world coords
 turtle_data_size = 4
 def gen_world():
@@ -45,26 +28,34 @@ def gen_world():
         yield random() * world_size - half_size
         yield random() * world_size - half_size
         yield random() * 360.0
-        yield turtle_size * random() + 1.0
+        yield turtle_size  # * random() + 1.0
 
-turtle_model = array('f', gen_world())
+turtle_model = array('f', list(gen_world())) #, lock=False)
+turtle_shape = turtle_shapes[shape]
 
-turtle_geom = turtle_geom_arrow2
-num_vertex = len(turtle_geom) // 4
-# same geom for all turtles, for now
-turtle_geom_data = array('f', turtle_geom * len(turtle_model))
-total_count = len(turtle_geom_data)
+
+turtle_geom = array('f', turtle_shape['vertex'])
+
+turtle_index = array('B', turtle_shape['index'])
+indices_pointer, indicies_length = turtle_index.buffer_info()
+
+num_vertex = len(turtle_index)
 
 program = Program(
 '''
-    #define DEG_TO_RAD(x) (x) * 0.017453292519943295
     uniform vec2 scale;
-    attribute vec4 vertex;
+    attribute vec2 shape_vertex;
     attribute vec4 turtle;
 
     void main()
     {
-        float theta = DEG_TO_RAD(turtle.z);
+        vec4 vertex = vec4(
+            shape_vertex.x,
+            shape_vertex.y,
+            0.0,
+            1.0
+        );
+        float theta = radians(turtle.z);
         float ct = cos(theta);
         float st = sin(theta);
         float x = turtle.w / scale.x;
@@ -85,7 +76,7 @@ program = Program(
 
 glClearColor(1.0, 1.0, 1.0, 0.0)
 
-vertex_attr = glGetAttribLocation(program.id, b"vertex")
+vertex_attr = glGetAttribLocation(program.id, b"shape_vertex")
 turtle_attr = glGetAttribLocation(program.id, b"turtle")
 
 
@@ -95,8 +86,8 @@ program.uniforms['scale'].set(half_size, half_size)
 # TODO view matrix
 
 vertices = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STATIC_DRAW)
-vertices.load(turtle_geom_data)
-vertices.bind(vertex_attr)
+vertices.load(turtle_geom)
+vertices.bind(vertex_attr, size=2)
 
 turtles = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STREAM_READ)
 # initial load
@@ -116,8 +107,10 @@ def on_draw():
     global draw_total, draw_count
     x = time()
     window.clear()
-    turtles.bind(turtle_attr, turtle_data_size, divisor=1)
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, num_vertex, num_turtles)
+    turtles.bind(turtle_attr, divisor=1)
+    glDrawElementsInstanced(
+        GL_TRIANGLES, indicies_length, GL_UNSIGNED_BYTE, indices_pointer,
+        num_turtles)
     draw_total += time() -x
     draw_count += 1
 
@@ -149,7 +142,7 @@ def update(dt):
             turtle_model[y] -= world_size
         elif turtle_model[y] < -half_size:
             turtle_model[y] += world_size
-    update_total += time() -xtt
+    update_total += time() - xtt
     update_count += 1
     xtt = time()
     turtles.load(turtle_model)

@@ -1,4 +1,5 @@
 from array import array
+from multiprocessing import Array
 from ctypes import (
     byref,
     c_int,
@@ -62,6 +63,7 @@ class Uniform(object):
         self.item_type, self.length = self.UNIFORM_TYPES[self.type]
         # ctypes type to use
         self.ctype = self.item_type * self.length
+        (GLfloat * 2)
         # setup correct gl functions to access
         self._getter = self.GETTERS[self.item_type]
         self._setter = self.SETTERS[self.type]
@@ -133,9 +135,7 @@ class Buffer(object):
         glBindBuffer(self.array_type, 0)
 
     def load(self, data):
-        if not isinstance(data, array):
-            raise ShaderError("Buffer objects can only load arrays")
-        assert self.ARRAY_TYPE_CODES[data.typecode] == self.element_type
+        #assert self.ARRAY_TYPE_CODES[data.typecode] == self.element_type
         address, length = data.buffer_info()
         size = length * data.itemsize
         glBindBuffer(self.array_type, self.id)
