@@ -5,6 +5,7 @@ from gles20 import *  # NOQA
 from shader import Program, Buffer
 
 from geometry import TurtleGeometry
+from util import measure
 
 turtle_data_size = 4
 
@@ -26,7 +27,7 @@ class TurGLESRenderer(object):
         self.load_program()
         self.set_background_color()
 
-    def set_background_color(self, color=None)
+    def set_background_color(self, color=None):
         if color is None:
             glClearColor(1.0, 1.0, 1.0, 0.0)
         else:
@@ -52,12 +53,16 @@ class TurGLESRenderer(object):
 
     def render(self, turtle_data):
         self.window.clear()
-        self.turtle_buffer.load(turtle_data)
-        self.turtle_buffer.bind(self.turtle_attr, size=4, divisor=1)
-        glDrawElementsInstanced(
-            GL_TRIANGLES,
-            self.geometry.indices_length,
-            GL_UNSIGNED_SHORT,
-            self.geometry.indices_pointer,
-            len(turtle_data) // 4
-        )
+
+        with measure("load"):
+            self.turtle_buffer.load(turtle_data)
+
+        with measure("render"):
+            self.turtle_buffer.bind(self.turtle_attr, size=4, divisor=1)
+            glDrawElementsInstanced(
+                GL_TRIANGLES,
+                self.geometry.indices_length,
+                GL_UNSIGNED_SHORT,
+                self.geometry.indices_pointer,
+                len(turtle_data) // 4
+            )

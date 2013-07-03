@@ -108,8 +108,3 @@ def update(dt):
 pyglet.clock.schedule_interval(update, 1/30)
 
 pyglet.app.run()
-
-print('   fps: {:.3f}'.format(pyglet.clock.get_fps()))
-print('  draw: {:.3f} ms'.format(draw_total / draw_count * 1000))
-print('update: {:.3f} ms'.format(update_total / update_count * 1000))
-print('  load: {:.3f} ms'.format(load_total / load_count * 1000))

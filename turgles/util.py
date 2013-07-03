@@ -1,3 +1,7 @@
+import atexit
+from time import time
+from contextlib import contextmanager
+from collections import defaultdict
 from ctypes import *  # NOQA
 from gles20 import *  # NOQA
 
@@ -23,3 +27,20 @@ def _make_gl_logger(getLength, getInfoLog):
 
 get_shader_log = _make_gl_logger(glGetShaderiv, glGetShaderInfoLog)
 get_program_log = _make_gl_logger(glGetProgramiv, glGetProgramInfoLog)
+
+MEASUREMENTS = defaultdict(list)
+
+
+@contextmanager
+def measure(name):
+    start = time()
+    yield
+    MEASUREMENTS[name].append(time() - start)
+
+
+@atexit.register
+def print_measurements():
+    import pyglet
+    print('fps: {:.3f}'.format(pyglet.clock.get_fps()))
+    for name, values in MEASUREMENTS.items():
+        print("{}: {:.3f} ms".format(name, sum(values) / len(values) * 1000))
