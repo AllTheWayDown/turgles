@@ -43,4 +43,7 @@ def print_measurements():
     import pyglet
     print('fps: {:.3f}'.format(pyglet.clock.get_fps()))
     for name, values in MEASUREMENTS.items():
-        print("{}: {:.3f} ms".format(name, sum(values) / len(values) * 1000))
+        values.sort()
+        mean = sum(values) / len(values) * 1000
+        median = values[len(values) // 2] * 1000
+        print("{}: mean {:.3f}, median {:.3f}".format(name, mean, median))

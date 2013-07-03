@@ -1,3 +1,5 @@
+from __future__ import division, print_function, absolute_import
+
 import pyglet
 
 from gles20 import *  # NOQA
