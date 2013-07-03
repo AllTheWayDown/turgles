@@ -1,15 +1,6 @@
-from random import randint, random, expovariate
-from math import radians, sin, cos, pi
-from time import time
-import pyglet
-from ctypes import sizeof
-
+from math import sin, cos, pi
 from array import array
-from multiprocessing import Array
 
-from gles20 import *  # NOQA
-
-from shader import Program, Buffer
 
 def generate_circle_geometry(n):
     angles = [ -pi/2 + (pi * (i/n)) for i in range(1, n-1)]
@@ -27,7 +18,8 @@ def generate_circle_geometry(n):
 
 
 
-# generate from shapes in turtle module
+# generated from shapes in turtle module
+# normalised to -1.0 <-> 1.0 and rotated right by 90 degrees
 turtle_shapes = {
     'turtle': {
         'vertex': (
@@ -177,9 +169,20 @@ class TurtleGeometry(object):
         self.indices_pointer, self.indices_length = self.indices.buffer_info()
 
     @classmethod
+    def make_vec4(cls, data):
+        """transforms an array of 2d coords into 4d"""
+        it = iter(data)
+        while True:
+            yield next(it)  # x
+            yield next(it)  # y
+            yield 0.0        # z
+            yield 1.1        # w
+
+    @classmethod
     def load_shape(cls, shape):
         turtle_shape = turtle_shapes[shape]
-        return cls(turtle_shape['vertex'], turtle_shape['index'])
+        return cls(list(cls.make_vec4(turtle_shape['vertex'])),
+                   turtle_shape['index'])
 
 
 

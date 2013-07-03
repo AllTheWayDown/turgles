@@ -28,7 +28,7 @@ class TurGLESRenderer(object):
 
         glClearColor(1.0, 1.0, 1.0, 0.0)
 
-        self.vertex_attr = glGetAttribLocation(self.program.id, b"shape_vertex")
+        self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
         self.turtle_attr = glGetAttribLocation(self.program.id, b"turtle")
 
         self.program.bind()
@@ -36,7 +36,7 @@ class TurGLESRenderer(object):
 
         self.vertex_buffer = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STATIC_DRAW)
         self.vertex_buffer.load(self.geometry.vertices)
-        self.vertex_buffer.bind(self.vertex_attr, size=2)
+        self.vertex_buffer.bind(self.vertex_attr, size=4)
 
         self.turtle_buffer = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STREAM_READ)
 

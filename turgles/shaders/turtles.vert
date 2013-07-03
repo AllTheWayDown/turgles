@@ -1,16 +1,9 @@
 uniform vec2 scale;
-attribute vec2 shape_vertex;
+attribute vec4 vertex;
 attribute vec4 turtle;
 
 void main()
 {
-    // currently vertex is just 2d data
-    vec4 vertex = vec4(
-        shape_vertex.x,
-        shape_vertex.y,
-        0.0,
-        1.0
-    );
     float theta = radians(turtle.z);
     float ct = cos(theta);
     float st = sin(theta);
