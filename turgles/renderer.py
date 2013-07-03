@@ -10,6 +10,8 @@ turtle_data_size = 4
 
 
 class TurGLESRenderer(object):
+    vertex_shader = 'shaders/turtles.vert'
+    fragment_shader = 'shaders/turtles.frag'
 
     def __init__(self, width, height):
         self.width = width
@@ -21,12 +23,20 @@ class TurGLESRenderer(object):
         self.window = pyglet.window.Window(
             width=int(width), height=int(height))
 
-        self.program = Program(
-            open('shaders/turtles.vert').read(),
-            open('shaders/turtles.frag').read()
-        )
+        self.load_program()
+        self.set_background_color()
 
-        glClearColor(1.0, 1.0, 1.0, 0.0)
+    def set_background_color(self, color=None)
+        if color is None:
+            glClearColor(1.0, 1.0, 1.0, 0.0)
+        else:
+            glClearColor(color[0], color[1], color[2], 0.0)
+
+    def load_program(self):
+        self.program = Program(
+            open(self.vertex_shader).read(),
+            open(self.fragment_shader).read()
+        )
 
         self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
         self.turtle_attr = glGetAttribLocation(self.program.id, b"turtle")
@@ -51,4 +61,3 @@ class TurGLESRenderer(object):
             self.geometry.indices_pointer,
             len(turtle_data) // 4
         )
-

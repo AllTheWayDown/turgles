@@ -175,8 +175,8 @@ class TurtleGeometry(object):
         while True:
             yield next(it)  # x
             yield next(it)  # y
-            yield 0.0        # z
-            yield 1.1        # w
+            yield 0.0       # z
+            yield 1.1       # w
 
     @classmethod
     def load_shape(cls, shape):
@@ -184,6 +184,7 @@ class TurtleGeometry(object):
         return cls(list(cls.make_vec4(turtle_shape['vertex'])),
                    turtle_shape['index'])
 
-
-
-
+    @classmethod
+    def load_file(cls, path):
+        #TODO
+        pass
