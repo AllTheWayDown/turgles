@@ -166,3 +166,21 @@ turtle_shapes = {
         'index': (0, 1, 2)
     },
 }
+
+
+class TurtleGeometry(object):
+
+    def __init__(self, vertices, indices):
+        self.vertices = array('f', vertices)
+        self.indices = array('H', indices)
+        self.num_vertex = len(indices)
+        self.indices_pointer, self.indices_length = self.indices.buffer_info()
+
+    @classmethod
+    def load_shape(cls, shape):
+        turtle_shape = turtle_shapes[shape]
+        return cls(turtle_shape['vertex'], turtle_shape['index'])
+
+
+
+

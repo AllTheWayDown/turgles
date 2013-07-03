@@ -15,8 +15,8 @@ from geometry import turtle_shapes
 
 world_size = 800.0
 half_size = world_size / 2
-turtle_size = 50.0
-num_turtles = 10
+turtle_size = 10.0
+num_turtles = 10000
 shape = 'turtle'
 
 window = pyglet.window.Window(width=int(world_size), height=int(world_size))
@@ -31,47 +31,9 @@ def gen_world():
         yield turtle_size  # * random() + 1.0
 
 turtle_model = array('f', list(gen_world())) #, lock=False)
-turtle_shape = turtle_shapes[shape]
-
-
-turtle_geom = array('f', turtle_shape['vertex'])
-
-turtle_index = array('B', turtle_shape['index'])
-indices_pointer, indicies_length = turtle_index.buffer_info()
-
-num_vertex = len(turtle_index)
-
 program = Program(
-'''
-    uniform vec2 scale;
-    attribute vec2 shape_vertex;
-    attribute vec4 turtle;
-
-    void main()
-    {
-        vec4 vertex = vec4(
-            shape_vertex.x,
-            shape_vertex.y,
-            0.0,
-            1.0
-        );
-        float theta = radians(turtle.z);
-        float ct = cos(theta);
-        float st = sin(theta);
-        float x = turtle.w / scale.x;
-        float y = turtle.w / scale.y;
-        mat4 model = mat4(ct * x, -st * y,  0.0, turtle.x / scale.x,
-                          st * x,  ct * y,  0.0, turtle.y / scale.y,
-                          0.0, 0.0, 0.0, 0.0,
-                          0.0, 0.0, 0.0, 1.0);
-        gl_Position = vertex * model;
-    }''',
-
-'''
-    void main()
-    {
-        gl_FragColor = vec4(0.1, 0.1, 0.1, 0.1);
-    }'''
+    open('shaders/turtles.vert').read(),
+    open('shaders/turtles.frag').read()
 )
 
 glClearColor(1.0, 1.0, 1.0, 0.0)
@@ -107,7 +69,7 @@ def on_draw():
     global draw_total, draw_count
     x = time()
     window.clear()
-    turtles.bind(turtle_attr, divisor=1)
+    turtles.bind(turtle_attr, size=4, divisor=1)
     glDrawElementsInstanced(
         GL_TRIANGLES, indicies_length, GL_UNSIGNED_BYTE, indices_pointer,
         num_turtles)
@@ -123,25 +85,19 @@ def update(dt):
     global update_total, update_count, load_total, load_count
     xtt = time()
     magnitude = speed * dt
-    for t in range(num_turtles):
-        x = t * turtle_data_size
+    for x in range(0, num_turtles * turtle_data_size, turtle_data_size):
         y = x + 1
         angle = x + 2
 
+        if (abs(turtle_model[x]) > half_size or
+            abs(turtle_model[y]) > half_size):
+            turtle_model[angle] = (turtle_model[angle] + 180) % 360
         turtle_model[angle] += expovariate(lambd) - degrees
         theta = radians(turtle_model[angle])
         dy = magnitude * sin(theta)
         dx = magnitude * cos(theta)
         turtle_model[x] += dx
         turtle_model[y] += dy
-        if turtle_model[x] > half_size:
-            turtle_model[x] -= world_size
-        elif turtle_model[x] < -half_size:
-            turtle_model[x] += world_size
-        if turtle_model[y] > half_size:
-            turtle_model[y] -= world_size
-        elif turtle_model[y] < -half_size:
-            turtle_model[y] += world_size
     update_total += time() - xtt
     update_count += 1
     xtt = time()

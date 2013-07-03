@@ -78,24 +78,31 @@ class TurtleView3():
         self.y += dy
 
 
+ATTRS = dict((a, i) for i, a in enumerate(('x', 'y', 'angle', 'size')))
 
-def wrapper(data, index):
-    class descriptor(object):
-        def __set__(self, instance, value):
-            data[index] = value
-        def __get__(self, instance, owner):
-            return data[index]
-    return descriptor()
-
-
-def get_turtle(data, n):
-    class Turtle(object):
-        x = wrapper(data, n)
-        y = wrapper(data, n + 1)
-        angle = wrapper(data, n + 2)
-        size = wrapper(data, n + 3)
-    return Turtle()
-
+#class TurtleView4():
+#    """A view of a single turtle in the massive list of turtles."""
+#    __slots__ = ('view')
+#
+#    def __init__(self, turtles, num):
+#        self.view = memoryview(turtles)[num:num + 4]
+#
+#    def __getattr__(self, attr):
+#        try:
+#            return self.view[ATTRS[attr]]
+#        except KeyError:
+#            raise AttributeError(attr)
+#
+#    def __setattr__(self, attr, value):
+#        view = self.__dict__['view']
+#        try:
+#            view[ATTRS[attr]] = value
+#        except KeyError:
+#            raise AttributeError(attr)
+#
+#    def move(self, dx, dy):
+#        self.x += dx
+#        self.y += dy
 
 num_turtles = 10000
 TURTLES = array.array("f", range(num_turtles * 4))
@@ -122,10 +129,10 @@ def direct():
 
 turtles = array.array("f", range(num_turtles * 4))
 print(bench(TurtleView))
+turtles = array.array("f", range(num_turtles * 4))
 print(bench(TurtleView2))
+turtles = array.array("f", range(num_turtles * 4))
 print(bench(TurtleView3))
-#turtles = array.array("f", range(num_turtles * 4))
-#print(bench(get_turtle))
 turtles = array.array("f", range(num_turtles * 4))
 print(direct())
 

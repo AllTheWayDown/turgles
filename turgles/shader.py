@@ -119,7 +119,7 @@ class Buffer(object):
 
     def bind(self,
             index,
-            size=4,
+            size,
             interpolate=GL_FALSE,
             stride=0,
             offset=0,
