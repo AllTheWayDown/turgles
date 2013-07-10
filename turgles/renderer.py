@@ -9,24 +9,38 @@ from shader import Program, Buffer
 from geometry import TurtleGeometry
 from util import measure
 
-turtle_data_size = 4
+turtle_data_size = 7
 
 
-class TurGLESRenderer(object):
-    vertex_shader = 'shaders/turtles.vert'
-    fragment_shader = 'shaders/turtles.frag'
+class BaseRenderer(object):
 
-    def __init__(self, width, height):
+    vertex_shader = None
+    fragment_shader = None
+
+    def __init__(self, width, height, shape='classic', samples=16):
         self.width = width
         self.half_width = width // 2
         self.height = height
         self.half_height = height // 2
-        self.geometry = TurtleGeometry.load_shape('turtle')
 
+        # constant shape for now
+        self.geometry = TurtleGeometry.load_shape(shape)
+        self.config = pyglet.gl.Config(
+            double_buffer=True,
+            sample_buffers=1,
+            samples=samples,
+            #major_version=3,
+            #minor_version=1,
+            #forward_compatible=True,
+        )
         self.window = pyglet.window.Window(
-            width=int(width), height=int(height))
+            config=self.config,
+            width=int(width),
+            height=int(height)
+        )
 
         self.load_program()
+        self.setup_program()
         self.set_background_color()
 
     def set_background_color(self, color=None):
@@ -40,31 +54,3 @@ class TurGLESRenderer(object):
             open(self.vertex_shader).read(),
             open(self.fragment_shader).read()
         )
-
-        self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
-        self.turtle_attr = glGetAttribLocation(self.program.id, b"turtle")
-
-        self.program.bind()
-        self.program.uniforms['scale'].set(self.half_width, self.half_height)
-
-        self.vertex_buffer = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STATIC_DRAW)
-        self.vertex_buffer.load(self.geometry.vertices)
-        self.vertex_buffer.bind(self.vertex_attr, size=4)
-
-        self.turtle_buffer = Buffer(GLfloat, GL_ARRAY_BUFFER, GL_STREAM_READ)
-
-    def render(self, turtle_data):
-        self.window.clear()
-
-        with measure("load"):
-            self.turtle_buffer.load(turtle_data)
-
-        with measure("render"):
-            self.turtle_buffer.bind(self.turtle_attr, size=4, divisor=1)
-            glDrawElementsInstanced(
-                GL_TRIANGLES,
-                self.geometry.indices_length,
-                GL_UNSIGNED_SHORT,
-                self.geometry.indices_pointer,
-                len(turtle_data) // 4
-            )

@@ -1,26 +1,29 @@
-turgles
+TurGLES
 =======
 
-OpenGL ES backend for python turtle module
+OpenGL ES backend for rendering turtles
 
-Status: experimenting, pre-pre-pre alpha
+Status: experimenting, pre-alpha
 
-Goals:
- 1. Drop in\* renderer for stdlib turtle module
- 2. RaspPi compatible
- 3. Full 3d camera
- 4. Custom 3D turle geometry, w/texture mapping
- 5. Extensible (custom turtle shaders, new world objects)
- 6. Provide custom turtle class that does *all* maths in the shaders
+Hard Goals:
+ - Fast renderer for a turtle-like world
+ - RasPi compatible
+ - Full 3d camera
+ - Custom 3D turle geometry
+ - Scales to 10,000 turtles
 
+Stretch Goals:
+ - Texture mapping images as turtle
+ - Drop in replacement renderer for stdlib turtle module\*
+ - Use shaders to simulate turtle world, not just render
+ - Extensible (custom turtle shaders, new world objects)
 
-\* probably via monkey patching, as turtle module is only partially extensible
+\* via monkey patching, as turtle module not easily extensible
 
 
 Development
 ===========
 
-
-    virtualenv -p python3.2 turgles
+    virtualenv turgles
     pip install -r requirements.txt
 

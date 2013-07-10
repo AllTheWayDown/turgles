@@ -16,6 +16,16 @@ from util import (
     ShaderError,
 )
 
+GL_TYPEMAP = {
+    GLbyte:   (GL_BYTE, 1),
+    GLubyte:  (GL_UNSIGNED_BYTE, 1),
+    GLshort:  (GL_SHORT, 2),
+    GLushort: (GL_UNSIGNED_SHORT, 2),
+    GLint:    (GL_INT, 4),
+    GLuint:   (GL_UNSIGNED_INT, 4),
+    GLfloat:  (GL_FLOAT, 4)
+}
+
 class Uniform(object):
     """Represents a shader uniform"""
 
@@ -98,49 +108,67 @@ class Uniform(object):
 
 class Buffer(object):
 
-    TYPE_FLAGS = {
-        GLfloat: GL_FLOAT,
-        GLint: GL_INT,
-        }
-
     ARRAY_TYPE_CODES  = {
         'f': GLfloat,
         'l': GLint,
+        'H': GLushort,
     }
 
-    def __init__(self, element_type, array_type, draw_type):
-        self.element_type = element_type
-        self.element_flag = self.TYPE_FLAGS[element_type]
+
+    def __init__(self, array_type, element_type, draw_type):
         self.array_type = array_type
+        self.element_type = element_type
+        self.element_flag, self.element_size = GL_TYPEMAP[element_type]
         self.draw_type = draw_type
 
         self.id = GLuint()
         glGenBuffers(1, self.id)
 
-    def bind(self,
+
+    def bind(self):
+        glBindBuffer(self.array_type, self.id)
+
+    def unbind(self):
+        """Same for all buffer types"""
+        glBindBuffer(self.array_type, 0)
+
+    def load(self, data):
+        """Same for all buffer types. Data is array.array instance"""
+        assert self.ARRAY_TYPE_CODES[data.typecode] == self.element_type
+        assert self.element_size == data.itemsize
+        address, length = data.buffer_info()
+        size = length * data.itemsize
+        self.bind()
+        glBufferData(self.array_type, size, address, self.draw_type)
+        self.unbind()
+
+
+class VertexBuffer(Buffer):
+
+    def __init__(self, element_type, draw_type):
+        super(VertexBuffer, self).__init__(
+            GL_ARRAY_BUFFER, element_type, draw_type)
+
+    def set(self,
             index,
-            size,
             interpolate=GL_FALSE,
             stride=0,
             offset=0,
             divisor=None):
-        glBindBuffer(self.array_type, self.id)
+        self.bind()
         glEnableVertexAttribArray(index)
         glVertexAttribPointer(
-            index, size, self.element_flag, interpolate, stride, offset)
+            index,
+            self.element_size,
+            self.element_flag,
+            interpolate,
+            stride,
+            offset
+        )
         if divisor is not None:
             glVertexAttribDivisor(index, divisor)
 
-    def unbind(self):
-        glBindBuffer(self.array_type, 0)
 
-    def load(self, data):
-        #assert self.ARRAY_TYPE_CODES[data.typecode] == self.element_type
-        address, length = data.buffer_info()
-        size = length * data.itemsize
-        glBindBuffer(self.array_type, self.id)
-        glBufferData(self.array_type, size, address, self.draw_type)
-        glBindBuffer(self.array_type, 0)
 
 class Program:
     """Shader program abstraction"""
