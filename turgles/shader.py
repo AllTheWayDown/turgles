@@ -7,9 +7,9 @@ from ctypes import (
     pointer,
     sizeof,
 )
-from gles20 import *  # NOQA
+from turgles.gles20 import *  # NOQA
 
-from util import (
+from turgles.util import (
     convert_to_cstring,
     get_program_log,
     get_shader_log,

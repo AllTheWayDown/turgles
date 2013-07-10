@@ -3,7 +3,8 @@ from time import time
 from contextlib import contextmanager
 from collections import defaultdict
 from ctypes import *  # NOQA
-from gles20 import *  # NOQA
+
+from turgles.gles20 import *  # NOQA
 
 
 class ShaderError(Exception):
