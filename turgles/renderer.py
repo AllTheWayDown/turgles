@@ -17,7 +17,7 @@ class BaseRenderer(object):
     vertex_shader = None
     fragment_shader = None
 
-    def __init__(self, width, height, shape='classic', samples=16,
+    def __init__(self, width, height, shape='classic', samples=None,
             vertex_shader=None, fragment_shader=None):
         self.width = width
         self.half_width = width // 2
@@ -31,14 +31,14 @@ class BaseRenderer(object):
 
         # constant shape for now
         self.geometry = TurtleGeometry.load_shape(shape)
-        self.config = pyglet.gl.Config(
-            double_buffer=True,
-            sample_buffers=1,
-            samples=samples,
+        kwargs = dict(double_buffer=True)
+        if samples is not None:
+            kwargs['sample_buffers'] = 1
+            kwargs['samples'] = samples
             #major_version=3,
             #minor_version=1,
             #forward_compatible=True,
-        )
+        self.config = pyglet.gl.Config(**kwargs)
         self.window = pyglet.window.Window(
             config=self.config,
             width=int(width),
