@@ -1,6 +1,6 @@
 import atexit
+import functools
 from time import time
-from contextlib import contextmanager
 from collections import defaultdict
 from ctypes import *  # NOQA
 
@@ -32,19 +32,68 @@ get_program_log = _make_gl_logger(glGetProgramiv, glGetProgramInfoLog)
 MEASUREMENTS = defaultdict(list)
 
 
-@contextmanager
-def measure(name):
-    start = time()
-    yield
-    MEASUREMENTS[name].append(time() - start)
+class measure(object):
+
+    def __init__(self, name):
+        self.name = name
+
+    def __call__(self, func):
+        @functools.wraps(func)
+        def decorator(*args, **kwargs):
+            start = time()
+            result = func(*args, **kwargs)
+            MEASUREMENTS[self.name].append(time() - start)
+        return decorator
+
+    def __enter__(self):
+        self.start = time()
+
+    def __exit__(self, *exc_info):
+        MEASUREMENTS[self.name].append(time() - self.start)
 
 
 @atexit.register
 def print_measurements():
     import pyglet
     print('fps: {:.3f}'.format(pyglet.clock.get_fps()))
+
+    data = []
     for name, values in MEASUREMENTS.items():
         values.sort()
-        mean = sum(values) / len(values) * 1000
-        median = values[len(values) // 2] * 1000
-        print("{}: mean {:.3f}, median {:.3f}".format(name, mean, median))
+        mean, median, graph = stats(values)
+        data.append((median, mean, graph, name))
+    data.sort()
+    for median, mean, graph, name in data:
+        print("{}: {:.3f} ms\n{}".format(name, median*1000, graph))
+
+
+def stats(data):
+    data.sort()
+    dmin = data[0]
+    dmax = data[-1]
+    mean = sum(data) / len(data)
+    median = data[len(data) // 2]
+    diff = dmax - dmin
+
+    bins = 64
+
+    hist = [0] * bins
+    for num in data:
+        bin = int((num - dmin) / diff * bins)
+        bin = min(bin, bins-1)
+        hist[bin] += 1
+
+    hmax = max(hist)
+
+    ticks = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
+
+    graph = []
+    for count in hist:
+        if count == 0:
+            graph.append(' ')
+        else:
+            index = int(count / hmax * 8)
+            index = min(index, 7)
+            graph.append(ticks[index])
+
+    return mean, median, ''.join(graph)

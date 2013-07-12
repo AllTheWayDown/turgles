@@ -68,6 +68,11 @@ class Renderer(BaseRenderer):
     fragment_shader = 'shaders/turtles.frag'
 
     def setup_program(self):
+
+        self.vao = GLuint()
+        glGenVertexArrays(1, self.vao);
+        glBindVertexArray(self.vao);
+
         self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
         self.turtle_attr1 = glGetAttribLocation(self.program.id, b"turtle1")
         self.turtle_attr2 = glGetAttribLocation(self.program.id, b"turtle2")
@@ -89,6 +94,10 @@ class Renderer(BaseRenderer):
 
         # model buffer
         self.turtle_buffer = VertexBuffer(GLfloat, GL_DYNAMIC_DRAW)
+        self.turtle_buffer.set(
+            self.turtle_attr1, stride=32, offset=0, divisor=1)
+        self.turtle_buffer.set(
+            self.turtle_attr2, stride=32, offset=16, divisor=1)
 
     def render(self, turtle_data, count):
         self.window.clear()
@@ -96,11 +105,7 @@ class Renderer(BaseRenderer):
         with measure("load"):
             self.turtle_buffer.load(turtle_data)
 
-        with measure("render"):
-            self.turtle_buffer.set(
-                self.turtle_attr1, stride=32, offset=0, divisor=1)
-            self.turtle_buffer.set(
-                self.turtle_attr2, stride=32, offset=16, divisor=1)
+        with measure("draw"):
             glDrawElementsInstanced(
                 GL_TRIANGLES,
                 self.geometry.indices_length,
