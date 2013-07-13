@@ -7,7 +7,6 @@ from time import time
 import pyglet
 from ctypes import sizeof
 
-from array import array
 
 from turgles.renderer import BaseRenderer, Renderer
 from turgles.gles20 import *
@@ -15,6 +14,12 @@ from turgles.shader import *
 from turgles.util import measure
 
 from turgles.config import *
+from memory import ffi, create_turtle_buffer
+
+ffi.cdef(
+    "void random_walk_all(float*, int, float, float, float, float);"
+)
+fast = ffi.dlopen('./libfast.so')
 
 # world coords
 turtle_data_size = 8
@@ -31,13 +36,21 @@ def gen_world():
         yield cos(t)
         yield sin(t)
 
-turtle_model = array('f', list(gen_world()))
+
+turtle_model = create_turtle_buffer(list(gen_world()))
 
 renderer = Renderer(world_size, world_size, shape, samples=16)
 
 @renderer.window.event
 def on_draw():
     renderer.render(turtle_model, num_turtles)
+
+def u1(dt):
+    with measure("update"):
+        magnitude = speed * dt
+        fast.random_walk_all(
+            turtle_model, num_turtles, magnitude, half_size, 0.0, degrees
+        )
 
 def update(dt):
     with measure("update"):
@@ -49,8 +62,7 @@ def update(dt):
             if (abs(turtle_model[x]) > half_size or
                 abs(turtle_model[y]) > half_size):
                 angle = (angle + 180) % 360
-            angle += expovariate(lambd) - degrees
-
+            angle += (random() * 2 * degrees) - degrees
             theta = radians(angle)
             ct = cos(theta)
             st = sin(theta)
@@ -82,6 +94,6 @@ def idle():
     # Update timout
     return self.clock.get_sleep_time(True)
 
-pyglet.clock.schedule_interval(update, 1/30)
+pyglet.clock.schedule_interval(u1, 1/30)
 pyglet.app.event_loop.idle = idle
 pyglet.app.run()

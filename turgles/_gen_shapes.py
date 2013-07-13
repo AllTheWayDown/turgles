@@ -10,7 +10,6 @@ for name, shape in screen._shapes.items():
     print("'%s': {" % name)
     print("    'vertex': (")
     output = []
-    #import pdb; pdb.set_trace()
     for x, y in shape._data:
         maxima = max(maxima, abs(x), abs(y))
         output.append((y, -x))

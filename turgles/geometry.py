@@ -1,22 +1,4 @@
-from math import sin, cos, pi
-from array import array
-
-
-def generate_circle_geometry(n):
-    angles = [ -pi/2 + (pi * (i/n)) for i in range(1, n-1)]
-    yield -1.0
-    yield 0.0
-    for angle in angles:
-        c = cos(angle)
-        s = sin(angle)
-        yield s
-        yield c
-        yield s
-        yield -c
-    yield 1.0
-    yield 0.0
-
-
+from memory import (create_vertex_buffer, create_index_buffer)
 
 # generated from shapes in turtle module
 # normalised to -1.0 <-> 1.0 and rotated right by 90 degrees
@@ -163,10 +145,9 @@ turtle_shapes = {
 class TurtleGeometry(object):
 
     def __init__(self, vertices, indices):
-        self.vertices = array('f', vertices)
-        self.indices = array('H', indices)
+        self.vertices = create_vertex_buffer(vertices)
+        self.indices = create_index_buffer(indices)
         self.num_vertex = len(indices)
-        self.indices_pointer, self.indices_length = self.indices.buffer_info()
 
     @classmethod
     def make_vec4(cls, data):
@@ -176,7 +157,7 @@ class TurtleGeometry(object):
             yield next(it)  # x
             yield next(it)  # y
             yield 0.0       # z
-            yield 1.1       # w
+            yield 1.0       # w
 
     @classmethod
     def load_shape(cls, shape):

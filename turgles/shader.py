@@ -1,5 +1,3 @@
-from array import array
-from multiprocessing import Array
 from ctypes import (
     byref,
     c_int,
@@ -8,13 +6,13 @@ from ctypes import (
     sizeof,
 )
 from turgles.gles20 import *  # NOQA
-
 from turgles.util import (
     convert_to_cstring,
     get_program_log,
     get_shader_log,
     ShaderError,
 )
+from turgles.memory import to_pointer, size_in_bytes
 
 GL_TYPEMAP = {
     GLbyte:   (GL_BYTE, 1),
@@ -132,7 +130,7 @@ class Buffer(object):
         """Same for all buffer types"""
         glBindBuffer(self.array_type, 0)
 
-    def load(self, data):
+    def load_array(self, data):
         """Same for all buffer types. Data is array.array instance"""
         assert self.ARRAY_TYPE_CODES[data.typecode] == self.element_type
         assert self.element_size == data.itemsize
@@ -141,6 +139,17 @@ class Buffer(object):
         self.bind()
         glBufferData(self.array_type, size, address, self.draw_type)
         self.unbind()
+
+    def load(self, data, n=None):
+        """Data is cffi float* array"""
+        self.bind()
+        glBufferData(
+            self.array_type,
+            size_in_bytes(data),
+            to_pointer(data),
+            self.draw_type)
+        self.unbind()
+
 
 
 class VertexBuffer(Buffer):

@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdlib.h>
+#include <time.h>
 
 void random_walk(float *x, float magnitude, float half_size, float lambda, float degrees)
 
@@ -12,8 +13,10 @@ void random_walk(float *x, float magnitude, float half_size, float lambda, float
     {
         *angle = fmod(*angle + 180.0, 360.0);
     }
-    *angle += (rand() * degrees) - degrees;
-    float theta = *angle * 180.0 / M_PI;
+    float r = rand() / (float)(RAND_MAX);
+    float rd = (r * 2 * degrees) - degrees;
+    *angle = fmod(*angle + rd, 360.0);
+    float theta = *angle / 180.0 * M_PI;
     *ct = cos(theta);
     *st = sin(theta);
     *x += magnitude * *ct;

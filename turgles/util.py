@@ -83,7 +83,7 @@ def stats(data):
         bin = min(bin, bins-1)
         hist[bin] += 1
 
-    hmax = max(hist)
+    maxcount = max(hist)
 
     ticks = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█']
 
@@ -92,7 +92,7 @@ def stats(data):
         if count == 0:
             graph.append(' ')
         else:
-            index = int(count / hmax * 8)
+            index = int(count / maxcount * 8)
             index = min(index, 7)
             graph.append(ticks[index])
 

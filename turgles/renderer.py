@@ -9,8 +9,6 @@ from turgles.shader import Program, Buffer
 from turgles.geometry import TurtleGeometry
 from turgles.util import measure
 from turgles.shader import *
-turtle_data_size = 8
-
 
 class BaseRenderer(object):
 
@@ -93,13 +91,13 @@ class Renderer(BaseRenderer):
         self.index_buffer.bind()
 
         # model buffer
-        self.turtle_buffer = VertexBuffer(GLfloat, GL_DYNAMIC_DRAW)
+        self.turtle_buffer = VertexBuffer(GLfloat, GL_STREAM_DRAW)
         self.turtle_buffer.set(
             self.turtle_attr1, stride=32, offset=0, divisor=1)
         self.turtle_buffer.set(
             self.turtle_attr2, stride=32, offset=16, divisor=1)
 
-    def render(self, turtle_data, count):
+    def render(self, turtle_data, num_turtles):
         self.window.clear()
 
         with measure("load"):
@@ -108,10 +106,10 @@ class Renderer(BaseRenderer):
         with measure("draw"):
             glDrawElementsInstanced(
                 GL_TRIANGLES,
-                self.geometry.indices_length,
+                self.geometry.num_vertex,
                 GL_UNSIGNED_SHORT,
                 0,
-                count
+                num_turtles
             )
 
 

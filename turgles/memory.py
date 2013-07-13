@@ -21,3 +21,6 @@ def create_vertex_buffer(init):
 def to_pointer(ctype):
     #TODO support 32bit systems?
     return int(ffi.cast('long', ctype))
+
+# short cut
+size_in_bytes = ffi.sizeof
