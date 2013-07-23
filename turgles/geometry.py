@@ -2,7 +2,7 @@ from memory import (create_vertex_buffer, create_index_buffer)
 
 # generated from shapes in turtle module
 # normalised to -1.0 <-> 1.0 and rotated right by 90 degrees
-turtle_shapes = {
+STANDARD_SHAPE_POLYGONS = {
     'turtle': {
         'vertex': (
             1.000000, 0.000000,
@@ -41,7 +41,7 @@ turtle_shapes = {
             3, 6, 7,
             3, 7, 21,
             7, 8, 21,
-            8 ,16, 21,
+            8, 16, 21,
             8, 9, 11,
             9, 10, 11,
             11, 13, 8,
@@ -143,6 +143,10 @@ turtle_shapes = {
 
 
 class TurtleGeometry(object):
+    """Manages the mesh for a turtle.
+
+    Uses cffi to create c-arrays for storing vertices, indexes, and normals.
+    """
 
     def __init__(self, vertices, indices):
         self.vertices = create_vertex_buffer(vertices)
@@ -150,22 +154,25 @@ class TurtleGeometry(object):
         self.num_vertex = len(indices)
 
     @classmethod
-    def make_vec4(cls, data):
-        """transforms an array of 2d coords into 4d"""
-        it = iter(data)
-        while True:
-            yield next(it)  # x
-            yield next(it)  # y
-            yield 0.0       # z
-            yield 1.0       # w
-
-    @classmethod
-    def load_shape(cls, shape):
-        turtle_shape = turtle_shapes[shape]
-        return cls(list(cls.make_vec4(turtle_shape['vertex'])),
-                   turtle_shape['index'])
-
-    @classmethod
     def load_file(cls, path):
-        #TODO
-        pass
+        """Loads from file"""
+
+
+def convert_vec2_to_vec4(data):
+    """transforms an array of 2d coords into 4d"""
+    it = iter(data)
+    while True:
+        yield next(it)  # x
+        yield next(it)  # y
+        yield 0.0       # z
+        yield 1.0       # w
+
+
+# Initialise standard shapes on import
+SHAPES = {}
+for name, data in STANDARD_SHAPE_POLYGONS.items():
+    geom = TurtleGeometry(
+        list(convert_vec2_to_vec4(data['vertex'])),
+        data['index']
+    )
+    SHAPES[name] = geom

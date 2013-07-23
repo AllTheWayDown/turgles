@@ -6,9 +6,10 @@ from turgles.gles20 import *  # NOQA
 
 from turgles.shader import Program, Buffer
 
-from turgles.geometry import TurtleGeometry
+from turgles.geometry import SHAPES
 from turgles.util import measure
 from turgles.shader import *
+
 
 class BaseRenderer(object):
 
@@ -28,7 +29,7 @@ class BaseRenderer(object):
             self.fragment_shader = fragment_shader
 
         # constant shape for now
-        self.geometry = TurtleGeometry.load_shape(shape)
+        self.geometry = SHAPES[shape]
         kwargs = dict(double_buffer=True)
         if samples is not None:
             kwargs['sample_buffers'] = 1
