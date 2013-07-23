@@ -164,13 +164,6 @@ class Program:
             uniform = Uniform(self.id, index)
             self.uniforms[uniform.name] = uniform
 
-        # preload all attribute ids
-        self.attributes = {}
-        glGetProgramiv(self.id, GL_ACTIVE_ATTRIBUTES, count)
-        for index in range(count[0]):
-            size, type, name = load_attribute_data(self.id, index)
-            self.attributes[name] = index
-
         self.unbind()
 
     def create_shader(self, src, type):

@@ -4,11 +4,10 @@ import pyglet
 
 from turgles.gles20 import *  # NOQA
 
-from turgles.shader import Program, Buffer
+from turgles.shader import Program
 
 from turgles.geometry import SHAPES
-from turgles.util import measure
-from turgles.shader import *
+from turgles.render.turtles import TurtleShapeVAO
 
 
 class BaseRenderer(object):
@@ -29,7 +28,6 @@ class BaseRenderer(object):
             self.fragment_shader = fragment_shader
 
         # constant shape for now
-        self.geometry = SHAPES[shape]
         kwargs = dict(double_buffer=True)
         if samples is not None:
             kwargs['sample_buffers'] = 1
@@ -45,7 +43,7 @@ class BaseRenderer(object):
         )
 
         self.load_program()
-        self.setup_program()
+        self.setup_program(shape)
         self.set_background_color()
 
     def set_background_color(self, color=None):
@@ -66,49 +64,11 @@ class Renderer(BaseRenderer):
     vertex_shader = 'shaders/turtles1.vert'
     fragment_shader = 'shaders/turtles.frag'
 
-    def setup_program(self):
-
-        self.vao = GLuint()
-        glGenVertexArrays(1, self.vao)
-        glBindVertexArray(self.vao)
-
-        self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
-        self.turtle_attr1 = glGetAttribLocation(self.program.id, b"turtle1")
-        self.turtle_attr2 = glGetAttribLocation(self.program.id, b"turtle2")
-
+    def setup_program(self, shape):
         self.program.bind()
         self.program.uniforms['scale'].set(self.half_width, self.half_height)
-
-        # vertex buffer
-        self.vertex_buffer = VertexBuffer(GLfloat, GL_STATIC_DRAW)
-        self.vertex_buffer.load(self.geometry.vertices)
-        self.vertex_buffer.set(self.vertex_attr)
-
-        # index buffer
-        self.index_buffer = Buffer(
-            GL_ELEMENT_ARRAY_BUFFER, GLushort, GL_STATIC_DRAW
-        )
-        self.index_buffer.load(self.geometry.indices)
-        self.index_buffer.bind()
-
-        # model buffer
-        self.turtle_buffer = VertexBuffer(GLfloat, GL_STREAM_DRAW)
-        self.turtle_buffer.set(
-            self.turtle_attr1, stride=32, offset=0, divisor=1)
-        self.turtle_buffer.set(
-            self.turtle_attr2, stride=32, offset=16, divisor=1)
+        self.vao = TurtleShapeVAO(shape, self.program, SHAPES[shape])
 
     def render(self, turtle_data, num_turtles):
         self.window.clear()
-
-        with measure("load"):
-            self.turtle_buffer.load(turtle_data)
-
-        with measure("draw"):
-            glDrawElementsInstanced(
-                GL_TRIANGLES,
-                self.geometry.num_vertex,
-                GL_UNSIGNED_SHORT,
-                0,
-                num_turtles
-            )
+        self.vao.render(turtle_data, num_turtles)
