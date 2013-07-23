@@ -69,8 +69,8 @@ class Renderer(BaseRenderer):
     def setup_program(self):
 
         self.vao = GLuint()
-        glGenVertexArrays(1, self.vao);
-        glBindVertexArray(self.vao);
+        glGenVertexArrays(1, self.vao)
+        glBindVertexArray(self.vao)
 
         self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
         self.turtle_attr1 = glGetAttribLocation(self.program.id, b"turtle1")
@@ -112,5 +112,3 @@ class Renderer(BaseRenderer):
                 0,
                 num_turtles
             )
-
-

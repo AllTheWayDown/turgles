@@ -1,15 +1,15 @@
 from ctypes import (
     byref,
     c_int,
-    create_string_buffer,
     pointer,
-    sizeof,
 )
 from turgles.gles20 import *  # NOQA
-from turgles.util import (
+from turgles.glutil import (
     convert_to_cstring,
     get_program_log,
     get_shader_log,
+    load_attribute_data,
+    load_uniform_data,
     ShaderError,
 )
 from turgles.memory import to_pointer, size_in_bytes
@@ -24,8 +24,9 @@ GL_TYPEMAP = {
     GLfloat:  (GL_FLOAT, 4)
 }
 
+
 class Uniform(object):
-    """Represents a shader uniform"""
+    """A shader uniform variable"""
 
     UNIFORM_TYPES = {
         GL_FLOAT: (GLfloat, 1),
@@ -65,8 +66,7 @@ class Uniform(object):
     def __init__(self, program_id, index):
         self.program_id = program_id
         self.index = index
-        self.size, self.type, self.cname = self.load_uniform(program_id, index)
-        self.name = self.cname.decode('utf8')
+        self.size, self.type, self.name = load_uniform_data(program_id, index)
         # unpack type constant
         self.item_type, self.length = self.UNIFORM_TYPES[self.type]
         # ctypes type to use
@@ -75,19 +75,6 @@ class Uniform(object):
         # setup correct gl functions to access
         self._getter = self.GETTERS[self.item_type]
         self._setter = self.SETTERS[self.type]
-
-    @staticmethod
-    def load_uniform(program_id, index):
-        """Loads the meta data for one uniform"""
-        n = 64  # max uniform length
-        bufsize = GLsizei(n)
-        length = pointer(GLsizei(0))
-        size = pointer(GLint(0))
-        type = pointer(GLenum(0))
-        uname = create_string_buffer(n)
-        glGetActiveUniform(
-            program_id, index, bufsize, length, size, type, uname)
-        return size[0], type[0], uname.value
 
     def __eq__(self, other):
         return self.index == other.index
@@ -99,19 +86,12 @@ class Uniform(object):
 
     def set(self, *data):
         if len(data) != self.length:
-            raise ShaderError("Uniform '%s' is of length %d, not %d" %(
+            raise ShaderError("Uniform '%s' is of length %d, not %d" % (
                 self.name, self.length, len(data)))
         self._setter(self.index, *data)
 
 
 class Buffer(object):
-
-    ARRAY_TYPE_CODES  = {
-        'f': GLfloat,
-        'l': GLint,
-        'H': GLushort,
-    }
-
 
     def __init__(self, array_type, element_type, draw_type):
         self.array_type = array_type
@@ -122,7 +102,6 @@ class Buffer(object):
         self.id = GLuint()
         glGenBuffers(1, self.id)
 
-
     def bind(self):
         glBindBuffer(self.array_type, self.id)
 
@@ -130,18 +109,8 @@ class Buffer(object):
         """Same for all buffer types"""
         glBindBuffer(self.array_type, 0)
 
-    def load_array(self, data):
-        """Same for all buffer types. Data is array.array instance"""
-        assert self.ARRAY_TYPE_CODES[data.typecode] == self.element_type
-        assert self.element_size == data.itemsize
-        address, length = data.buffer_info()
-        size = length * data.itemsize
-        self.bind()
-        glBufferData(self.array_type, size, address, self.draw_type)
-        self.unbind()
-
     def load(self, data, n=None):
-        """Data is cffi float* array"""
+        """Data is cffi array"""
         self.bind()
         glBufferData(
             self.array_type,
@@ -149,7 +118,6 @@ class Buffer(object):
             to_pointer(data),
             self.draw_type)
         self.unbind()
-
 
 
 class VertexBuffer(Buffer):
@@ -178,7 +146,6 @@ class VertexBuffer(Buffer):
             glVertexAttribDivisor(index, divisor)
 
 
-
 class Program:
     """Shader program abstraction"""
 
@@ -189,12 +156,20 @@ class Program:
         self.compile()
         self.bind()
 
+        count = pointer(GLint(0))
+
         self.uniforms = {}
-        uniform_count = pointer(GLint(0))
-        glGetProgramiv(self.id, GL_ACTIVE_UNIFORMS, uniform_count)
-        for index in range(uniform_count[0]):
+        glGetProgramiv(self.id, GL_ACTIVE_UNIFORMS, count)
+        for index in range(count[0]):
             uniform = Uniform(self.id, index)
             self.uniforms[uniform.name] = uniform
+
+        # preload all attribute ids
+        self.attributes = {}
+        glGetProgramiv(self.id, GL_ACTIVE_ATTRIBUTES, count)
+        for index in range(count[0]):
+            size, type, name = load_attribute_data(self.id, index)
+            self.attributes[name] = index
 
         self.unbind()
 
