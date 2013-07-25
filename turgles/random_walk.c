@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define TURTLE_DATA_SIZE 12
+
 void random_walk(float *x, float magnitude, float half_size, float lambda, float degrees)
 
 {
@@ -35,7 +37,7 @@ void random_walk_all(
     int i;
     for (i = 0; i < num_turtles; ++i)
     {
-        random_walk(turtles + (i * 8), magnitude, half_size, lambda, degrees);
+        random_walk(turtles + (i * TURTLE_DATA_SIZE), magnitude, half_size, lambda, degrees);
     }
 }
 

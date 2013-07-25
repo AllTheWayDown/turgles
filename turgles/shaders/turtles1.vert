@@ -1,9 +1,12 @@
 uniform vec2 world_scale;
 uniform float geometry_scale;
-attribute vec4 vertex;
 
+attribute vec4 vertex;
 attribute vec4 turtle1; // x, y, scale x, scale y
 attribute vec4 turtle2; // degrees, speed, cos, sin
+attribute vec4 turtle3; // rgba
+
+varying vec4 out_Color;
 
 void main()
 {
@@ -17,5 +20,6 @@ void main()
         0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 1.0
     );
+    out_Color = vec4(turtle3);
     gl_Position = vertex * model;
 }

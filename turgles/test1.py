@@ -30,6 +30,10 @@ def gen_world(n):
         yield 0.0
         yield cos(t)
         yield sin(t)
+        yield random()  # r
+        yield random()  # g
+        yield random()  # b
+        yield 1.0       # alpha
 
 
 renderer = Renderer(world_size, world_size, samples=16)

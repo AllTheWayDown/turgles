@@ -17,6 +17,7 @@ from turgles.gl.api import (
 
 from turgles.gl.buffer import VertexBuffer, Buffer
 from turgles.util import measure
+from turgles.memory import TURTLE_DATA_SIZE
 
 
 class TurtleShapeVAO(object):
@@ -32,6 +33,8 @@ class TurtleShapeVAO(object):
         self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
         self.turtle_attr1 = glGetAttribLocation(self.program.id, b"turtle1")
         self.turtle_attr2 = glGetAttribLocation(self.program.id, b"turtle2")
+        self.turtle_attr3 = glGetAttribLocation(self.program.id, b"turtle3")
+        print(self.turtle_attr1, self.turtle_attr2, self.turtle_attr3)
 
         # create VAO to store Vertex attribute state for later
         self.vao = GLuint()
@@ -53,11 +56,14 @@ class TurtleShapeVAO(object):
         self.index_buffer.bind()
 
         # turtle model buffer
+        stride = TURTLE_DATA_SIZE * 4  # how many floats
         self.turtle_buffer = VertexBuffer(GLfloat, GL_STREAM_DRAW)
         self.turtle_buffer.set(
-            self.turtle_attr1, stride=32, offset=0, divisor=1)
+            self.turtle_attr1, stride=stride, offset=0, divisor=1)
         self.turtle_buffer.set(
-            self.turtle_attr2, stride=32, offset=16, divisor=1)
+            self.turtle_attr2, stride=stride, offset=16, divisor=1)
+        self.turtle_buffer.set(
+            self.turtle_attr3, stride=stride, offset=32, divisor=1)
 
         # VAO now configured, so unbind
         glBindVertexArray(0)
