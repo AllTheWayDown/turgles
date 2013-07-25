@@ -26,7 +26,9 @@ GL_TYPEMAP = {
 
 
 class Uniform(object):
-    """A shader uniform variable"""
+    """A shader uniform variable.
+
+    Provides some convienices to set/get uniforms"""
 
     UNIFORM_TYPES = {
         GL_FLOAT: (GLfloat, 1),
@@ -92,6 +94,10 @@ class Uniform(object):
 
 
 class Buffer(object):
+    """Generic buffer abstraction.
+
+    Creation, binding and loading of GPU buffers.
+    """
 
     def __init__(self, array_type, element_type, draw_type):
         self.array_type = array_type
@@ -121,6 +127,11 @@ class Buffer(object):
 
 
 class VertexBuffer(Buffer):
+    """A VBO object to store vertex/model data.
+
+    Specialisation of Buffer for attribute data, provides convient way to use
+    glVertexAttribPointer, via set().
+    """
 
     def __init__(self, element_type, draw_type):
         super(VertexBuffer, self).__init__(
@@ -147,7 +158,10 @@ class VertexBuffer(Buffer):
 
 
 class Program:
-    """Shader program abstraction"""
+    """Shader program abstraction.
+
+    Loads/compiles/links the shaders, and handles any errors.
+    """
 
     def __init__(self, vertex, fragment):
         self.id = glCreateProgram()

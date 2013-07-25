@@ -15,8 +15,12 @@ class BaseRenderer(object):
     vertex_shader = None
     fragment_shader = None
 
-    def __init__(self, width, height, shape='classic', samples=None,
+    def __init__(
+            self,
+            width, height,
+            samples=None,
             vertex_shader=None, fragment_shader=None):
+
         self.width = width
         self.half_width = width // 2
         self.height = height
@@ -27,7 +31,6 @@ class BaseRenderer(object):
         if fragment_shader is not None:
             self.fragment_shader = fragment_shader
 
-        # constant shape for now
         kwargs = dict(double_buffer=True)
         if samples is not None:
             kwargs['sample_buffers'] = 1
@@ -43,7 +46,7 @@ class BaseRenderer(object):
         )
 
         self.load_program()
-        self.setup_program(shape)
+        self.setup_program()
         self.set_background_color()
 
     def set_background_color(self, color=None):
@@ -64,11 +67,15 @@ class Renderer(BaseRenderer):
     vertex_shader = 'shaders/turtles1.vert'
     fragment_shader = 'shaders/turtles.frag'
 
-    def setup_program(self, shape):
+    def setup_program(self):
         self.program.bind()
         self.program.uniforms['scale'].set(self.half_width, self.half_height)
-        self.vao = TurtleShapeVAO(shape, self.program, SHAPES[shape])
+        self.vao = {}
+        for shape, geom in SHAPES.items():
+            self.vao[shape] = TurtleShapeVAO(shape, self.program, geom)
 
-    def render(self, turtle_data, num_turtles):
+    def render(self, *buffers):
         self.window.clear()
-        self.vao.render(turtle_data, num_turtles)
+        for shape, data, size in buffers:
+            vao = self.vao[shape]
+            vao.render(data, size)

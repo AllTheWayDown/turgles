@@ -17,6 +17,7 @@ class measure(object):
             start = time()
             result = func(*args, **kwargs)
             MEASUREMENTS[self.name].append(time() - start)
+            return result
         return decorator
 
     def __enter__(self):
@@ -36,11 +37,11 @@ def print_measurements():
         mean, median, dmin, dmax, graph = stats(values)
         data.append((median, mean, dmin, dmax, graph, name))
     data.sort()
-    hd  = "{:10}| {:>10} | {:>5} {:^32} {:>5}|"
-    fmt = "{:10}: {:7.1f} ms [ {:5.1f} {} {:5.1f}]"
+    hd = "{:16}| {:>10} | {:>5} {:^32} {:>5}|"
+    fmt = "{:16}: {:7.1f} ms [ {:5.1f} {} {:5.1f}]"
 
     print(hd.format('name', 'median', 'min', 'histogram', 'max'))
-    print('-' * 64)
+    print('-' * 76)
     for median, mean, dmin, dmax, graph, name in data:
         print(fmt.format(name, median * 1000, dmin * 1000, graph, dmax * 1000))
 

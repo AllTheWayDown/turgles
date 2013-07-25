@@ -23,8 +23,10 @@ fast = ffi.dlopen('./libfast.so')
 
 # world coords
 turtle_data_size = 8
-def gen_world():
-    for i in range(num_turtles):
+
+
+def gen_world(n):
+    for i in range(n):
         degrees = random() * 360.0
         t = radians(degrees)
         yield random() * world_size - half_size
@@ -37,20 +39,30 @@ def gen_world():
         yield sin(t)
 
 
-turtle_model = create_turtle_buffer(list(gen_world()))
+turtle_model_b = create_turtle_buffer(list(gen_world(num_turtles // 2)))
+turtle_model_a = create_turtle_buffer(list(gen_world(num_turtles // 2)))
 
-renderer = Renderer(world_size, world_size, shape, samples=16)
+renderer = Renderer(world_size, world_size, samples=16)
+
 
 @renderer.window.event
 def on_draw():
-    renderer.render(turtle_model, num_turtles)
+    renderer.render(
+        ('turtle', turtle_model_a, num_turtles // 2),
+        ('triangle', turtle_model_b, num_turtles // 2),
+    )
+
 
 def u1(dt):
     with measure("update"):
         magnitude = speed * dt
         fast.random_walk_all(
-            turtle_model, num_turtles, magnitude, half_size, 0.0, degrees
+            turtle_model_a, num_turtles // 2, magnitude, half_size, 0.0, degrees
         )
+        fast.random_walk_all(
+            turtle_model_b, num_turtles // 2, magnitude, half_size, 0.0, degrees
+        )
+
 
 def update(dt):
     with measure("update"):
@@ -59,8 +71,8 @@ def update(dt):
             y = x + 1
             a = x + 4
             angle = turtle_model[a]
-            if (abs(turtle_model[x]) > half_size or
-                abs(turtle_model[y]) > half_size):
+            absx, abxy = abs(turtle_model[x]), abs(turtle_model[y])
+            if absx > half_size or absy > half_size:
                 angle = (angle + 180) % 360
             angle += (random() * 2 * degrees) - degrees
             theta = radians(angle)
