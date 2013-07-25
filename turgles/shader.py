@@ -3,25 +3,24 @@ from ctypes import (
     c_int,
     pointer,
 )
-from turgles.gles20 import *  # NOQA
+from turgles import gl
 from turgles.glutil import (
     convert_to_cstring,
     get_program_log,
     get_shader_log,
-    load_attribute_data,
     load_uniform_data,
     ShaderError,
 )
 from turgles.memory import to_pointer, size_in_bytes
 
-GL_TYPEMAP = {
-    GLbyte:   (GL_BYTE, 1),
-    GLubyte:  (GL_UNSIGNED_BYTE, 1),
-    GLshort:  (GL_SHORT, 2),
-    GLushort: (GL_UNSIGNED_SHORT, 2),
-    GLint:    (GL_INT, 4),
-    GLuint:   (GL_UNSIGNED_INT, 4),
-    GLfloat:  (GL_FLOAT, 4)
+TYPEMAP = {
+    gl.GLbyte:   (gl.GL_BYTE, 1),
+    gl.GLubyte:  (gl.GL_UNSIGNED_BYTE, 1),
+    gl.GLshort:  (gl.GL_SHORT, 2),
+    gl.GLushort: (gl.GL_UNSIGNED_SHORT, 2),
+    gl.GLint:    (gl.GL_INT, 4),
+    gl.GLuint:   (gl.GL_UNSIGNED_INT, 4),
+    gl.GLfloat:  (gl.GL_FLOAT, 4)
 }
 
 
@@ -31,38 +30,38 @@ class Uniform(object):
     Provides some convienices to set/get uniforms"""
 
     UNIFORM_TYPES = {
-        GL_FLOAT: (GLfloat, 1),
-        GL_FLOAT_VEC2: (GLfloat, 2),
-        GL_FLOAT_VEC3: (GLfloat, 3),
-        GL_FLOAT_VEC4: (GLfloat, 4),
-        GL_INT: (GLint, 1),
-        GL_INT_VEC2: (GLint, 2),
-        GL_INT_VEC3: (GLint, 3),
-        GL_INT_VEC4: (GLint, 4),
+        gl.GL_FLOAT: (gl.GLfloat, 1),
+        gl.GL_FLOAT_VEC2: (gl.GLfloat, 2),
+        gl.GL_FLOAT_VEC3: (gl.GLfloat, 3),
+        gl.GL_FLOAT_VEC4: (gl.GLfloat, 4),
+        gl.GL_INT: (gl.GLint, 1),
+        gl.GL_INT_VEC2: (gl.GLint, 2),
+        gl.GL_INT_VEC3: (gl.GLint, 3),
+        gl.GL_INT_VEC4: (gl.GLint, 4),
         # TODO
-        GL_BOOL: (GLboolean, 1),
-        GL_BOOL_VEC2: (GLboolean, 2),
-        GL_BOOL_VEC3: (GLboolean, 3),
-        GL_BOOL_VEC4: (GLboolean, 4),
-        GL_FLOAT_MAT2: (GLfloat, 2 * 2),
-        GL_FLOAT_MAT3: (GLfloat, 3 * 3),
-        GL_FLOAT_MAT4: (GLfloat, 4 * 4),
+        gl.GL_BOOL: (gl.GLboolean, 1),
+        gl.GL_BOOL_VEC2: (gl.GLboolean, 2),
+        gl.GL_BOOL_VEC3: (gl.GLboolean, 3),
+        gl.GL_BOOL_VEC4: (gl.GLboolean, 4),
+        gl.GL_FLOAT_MAT2: (gl.GLfloat, 2 * 2),
+        gl.GL_FLOAT_MAT3: (gl.GLfloat, 3 * 3),
+        gl.GL_FLOAT_MAT4: (gl.GLfloat, 4 * 4),
     }
 
     SETTERS = {
-        GL_FLOAT: glUniform1f,
-        GL_FLOAT_VEC2: glUniform2f,
-        GL_FLOAT_VEC3: glUniform3f,
-        GL_FLOAT_VEC4: glUniform4f,
-        GL_INT: glUniform1i,
-        GL_INT_VEC2: glUniform2i,
-        GL_INT_VEC3: glUniform3i,
-        GL_INT_VEC4: glUniform4i,
+        gl.GL_FLOAT: gl.Uniform1f,
+        gl.GL_FLOAT_VEC2: gl.Uniform2f,
+        gl.GL_FLOAT_VEC3: gl.Uniform3f,
+        gl.GL_FLOAT_VEC4: gl.Uniform4f,
+        gl.GL_INT: gl.Uniform1i,
+        gl.GL_INT_VEC2: gl.Uniform2i,
+        gl.GL_INT_VEC3: gl.Uniform3i,
+        gl.GL_INT_VEC4: gl.Uniform4i,
     }
 
     GETTERS = {
-        GLfloat: glGetUniformfv,
-        GLint: glGetUniformiv,
+        gl.GLfloat: gl.GetUniformfv,
+        gl.GLint: gl.GetUniformiv,
     }
 
     def __init__(self, program_id, index):
@@ -73,8 +72,7 @@ class Uniform(object):
         self.item_type, self.length = self.UNIFORM_TYPES[self.type]
         # ctypes type to use
         self.ctype = self.item_type * self.length
-        (GLfloat * 2)
-        # setup correct gl functions to access
+        # setup correct gl. functions to access
         self._getter = self.GETTERS[self.item_type]
         self._setter = self.SETTERS[self.type]
 
@@ -102,23 +100,23 @@ class Buffer(object):
     def __init__(self, array_type, element_type, draw_type):
         self.array_type = array_type
         self.element_type = element_type
-        self.element_flag, self.element_size = GL_TYPEMAP[element_type]
+        self.element_flag, self.element_size = TYPEMAP[element_type]
         self.draw_type = draw_type
 
-        self.id = GLuint()
-        glGenBuffers(1, self.id)
+        self.id = gl.GLuint()
+        gl.GenBuffers(1, self.id)
 
     def bind(self):
-        glBindBuffer(self.array_type, self.id)
+        gl.BindBuffer(self.array_type, self.id)
 
     def unbind(self):
         """Same for all buffer types"""
-        glBindBuffer(self.array_type, 0)
+        gl.BindBuffer(self.array_type, 0)
 
     def load(self, data, n=None):
         """Data is cffi array"""
         self.bind()
-        glBufferData(
+        gl.BufferData(
             self.array_type,
             size_in_bytes(data),
             to_pointer(data),
@@ -130,22 +128,22 @@ class VertexBuffer(Buffer):
     """A VBO object to store vertex/model data.
 
     Specialisation of Buffer for attribute data, provides convient way to use
-    glVertexAttribPointer, via set().
+    gl.VertexAttribPointer, via set().
     """
 
     def __init__(self, element_type, draw_type):
         super(VertexBuffer, self).__init__(
-            GL_ARRAY_BUFFER, element_type, draw_type)
+            gl.GL_ARRAY_BUFFER, element_type, draw_type)
 
     def set(self,
             index,
-            interpolate=GL_FALSE,
+            interpolate=gl.GL_FALSE,
             stride=0,
             offset=0,
             divisor=None):
         self.bind()
-        glEnableVertexAttribArray(index)
-        glVertexAttribPointer(
+        gl.EnableVertexAttribArray(index)
+        gl.VertexAttribPointer(
             index,
             self.element_size,
             self.element_flag,
@@ -154,7 +152,7 @@ class VertexBuffer(Buffer):
             offset
         )
         if divisor is not None:
-            glVertexAttribDivisor(index, divisor)
+            gl.VertexAttribDivisor(index, divisor)
 
 
 class Program:
@@ -164,16 +162,16 @@ class Program:
     """
 
     def __init__(self, vertex, fragment):
-        self.id = glCreateProgram()
-        self.create_shader(vertex, GL_VERTEX_SHADER)
-        self.create_shader(fragment, GL_FRAGMENT_SHADER)
+        self.id = gl.CreateProgram()
+        self.create_shader(vertex, gl.GL_VERTEX_SHADER)
+        self.create_shader(fragment, gl.GL_FRAGMENT_SHADER)
         self.compile()
         self.bind()
 
-        count = pointer(GLint(0))
+        count = pointer(gl.GLint(0))
 
         self.uniforms = {}
-        glGetProgramiv(self.id, GL_ACTIVE_UNIFORMS, count)
+        gl.GetProgramiv(self.id, gl.GL_ACTIVE_UNIFORMS, count)
         for index in range(count[0]):
             uniform = Uniform(self.id, index)
             self.uniforms[uniform.name] = uniform
@@ -181,27 +179,28 @@ class Program:
         self.unbind()
 
     def create_shader(self, src, type):
-        shader_id = glCreateShader(type)
-        glShaderSource(shader_id, 1, byref(convert_to_cstring(src)), None)
-        glCompileShader(shader_id)
+        shader_id = gl.CreateShader(type)
+        gl.ShaderSource(shader_id, 1, byref(convert_to_cstring(src)), None)
+        gl.CompileShader(shader_id)
 
         status = c_int(0)
-        glGetShaderiv(shader_id, GL_OBJECT_COMPILE_STATUS_ARB, byref(status))
+        gl.GetShaderiv(
+            shader_id, gl.GL_OBJECT_COMPILE_STATUS_ARB, byref(status))
 
         if not status:
             raise ShaderError(get_shader_log(shader_id))
         else:
-            glAttachShader(self.id, shader_id)
+            gl.AttachShader(self.id, shader_id)
 
     def compile(self):
-        glLinkProgram(self.id)
+        gl.LinkProgram(self.id)
         status = c_int(0)
-        glGetProgramiv(self.id, GL_LINK_STATUS, byref(status))
+        gl.GetProgramiv(self.id, gl.GL_LINK_STATUS, byref(status))
         if not status:
             raise ShaderError(get_program_log(self.id))
 
     def bind(self):
-        glUseProgram(self.id)
+        gl.UseProgram(self.id)
 
     def unbind(self):
-        glUseProgram(0)
+        gl.UseProgram(0)

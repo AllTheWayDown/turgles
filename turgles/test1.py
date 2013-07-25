@@ -1,32 +1,32 @@
 from __future__ import division, print_function, absolute_import
 
-from random import randint, random, expovariate
-
-from math import radians, sin, cos, pi
-from time import time
+from random import random
+from math import radians, cos, sin
 import pyglet
-from ctypes import sizeof
 
-
-from turgles.renderer import BaseRenderer, Renderer
-from turgles.gles20 import *
-from turgles.shader import *
+from turgles.renderer import Renderer
 from turgles.util import measure
 
-from turgles.config import *
-from turgles.memory import ffi, create_turtle_buffer
-from turgles.random_walk import fast_update, slow_update
+from turgles.config import (
+    world_size,
+    half_size,
+    num_turtles,
+    turtle_size,
+)
+from turgles.memory import create_turtle_buffer
+
+from turgles.random_walk import fast_update
 
 
 def gen_world(n):
     for i in range(n):
-        degrees = random() * 360.0
-        t = radians(degrees)
+        d = random() * 360.0
+        t = radians(d)
         yield random() * world_size - half_size
         yield random() * world_size - half_size
         yield turtle_size  # * random() + 1.0
         yield turtle_size  # * random() + 1.0
-        yield degrees
+        yield d
         yield 0.0
         yield cos(t)
         yield sin(t)

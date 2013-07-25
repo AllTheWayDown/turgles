@@ -2,7 +2,7 @@ from __future__ import division, print_function, absolute_import
 
 import pyglet
 
-from turgles.gles20 import *  # NOQA
+from turgles import gl
 
 from turgles.shader import Program
 
@@ -51,9 +51,9 @@ class BaseRenderer(object):
 
     def set_background_color(self, color=None):
         if color is None:
-            glClearColor(1.0, 1.0, 1.0, 0.0)
+            gl.ClearColor(1.0, 1.0, 1.0, 0.0)
         else:
-            glClearColor(color[0], color[1], color[2], 0.0)
+            gl.ClearColor(color[0], color[1], color[2], 0.0)
 
     def load_program(self):
         self.program = Program(
