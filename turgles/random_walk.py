@@ -15,13 +15,13 @@ fast = ffi.dlopen('./libfast.so')
 turtle_data_size = 8
 
 
-def fast_update(dt, *buffers):
+def fast_update(dt, buffers):
     magnitude = speed * dt
     for shape, data, size in buffers:
         fast.random_walk_all(data, size, magnitude, half_size, 0.0, degrees)
 
 
-def slow_update(dt, *buffers):
+def slow_update(dt, buffers):
     magnitude = speed * dt
     for shape, data, size in iter(buffers):
         walk(data, size, magnitude, half_size, degrees)

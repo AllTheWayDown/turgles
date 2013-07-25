@@ -14,15 +14,8 @@ from turgles.shader import *
 from turgles.util import measure
 
 from turgles.config import *
-from memory import ffi, create_turtle_buffer
-
-ffi.cdef(
-    "void random_walk_all(float*, int, float, float, float, float);"
-)
-fast = ffi.dlopen('./libfast.so')
-
-# world coords
-turtle_data_size = 8
+from turgles.memory import ffi, create_turtle_buffer
+from turgles.random_walk import fast_update, slow_update
 
 
 def gen_world(n):
@@ -39,54 +32,27 @@ def gen_world(n):
         yield sin(t)
 
 
+renderer = Renderer(world_size, world_size, samples=16)
+
 turtle_model_b = create_turtle_buffer(list(gen_world(num_turtles // 2)))
 turtle_model_a = create_turtle_buffer(list(gen_world(num_turtles // 2)))
-
-renderer = Renderer(world_size, world_size, samples=16)
+buffers = (
+    ('turtle', turtle_model_a, num_turtles // 2),
+    ('triangle', turtle_model_b, num_turtles // 2),
+)
 
 
 @renderer.window.event
 def on_draw():
-    renderer.render(
-        ('turtle', turtle_model_a, num_turtles // 2),
-        ('triangle', turtle_model_b, num_turtles // 2),
-    )
-
-
-def u1(dt):
-    with measure("update"):
-        magnitude = speed * dt
-        fast.random_walk_all(
-            turtle_model_a, num_turtles // 2, magnitude, half_size, 0.0, degrees
-        )
-        fast.random_walk_all(
-            turtle_model_b, num_turtles // 2, magnitude, half_size, 0.0, degrees
-        )
+    renderer.render(buffers)
 
 
 def update(dt):
     with measure("update"):
-        magnitude = speed * dt
-        for x in range(0, num_turtles * turtle_data_size, turtle_data_size):
-            y = x + 1
-            a = x + 4
-            angle = turtle_model[a]
-            absx, abxy = abs(turtle_model[x]), abs(turtle_model[y])
-            if absx > half_size or absy > half_size:
-                angle = (angle + 180) % 360
-            angle += (random() * 2 * degrees) - degrees
-            theta = radians(angle)
-            ct = cos(theta)
-            st = sin(theta)
-            dx = magnitude * ct
-            dy = magnitude * st
-            turtle_model[x] += dx
-            turtle_model[y] += dy
-            turtle_model[a] = angle
-            turtle_model[x + 6] = ct
-            turtle_model[x + 7] = st
+        fast_update(dt, buffers)
 
 
+# patch idle func to measure full draw time
 def idle():
     self = pyglet.app.event_loop
     app = pyglet.app
@@ -106,6 +72,6 @@ def idle():
     # Update timout
     return self.clock.get_sleep_time(True)
 
-pyglet.clock.schedule_interval(u1, 1/30)
+pyglet.clock.schedule_interval(update, 1/30)
 pyglet.app.event_loop.idle = idle
 pyglet.app.run()

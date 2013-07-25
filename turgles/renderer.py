@@ -74,7 +74,7 @@ class Renderer(BaseRenderer):
         for shape, geom in SHAPES.items():
             self.vao[shape] = TurtleShapeVAO(shape, self.program, geom)
 
-    def render(self, *buffers):
+    def render(self, buffers):
         self.window.clear()
         for shape, data, size in buffers:
             vao = self.vao[shape]
