@@ -68,6 +68,7 @@ class TurtleShapeVAO(object):
 
         with measure("load {}".format(self.name)):
             self.turtle_buffer.load(turtle_data)
+            self.program.uniforms['geometry_scale'].set(self.geometry.scale)
 
         with measure("draw {}".format(self.name)):
             glDrawElementsInstanced(

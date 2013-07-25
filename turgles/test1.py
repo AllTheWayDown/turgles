@@ -38,7 +38,7 @@ turtle_model_b = create_turtle_buffer(list(gen_world(num_turtles // 2)))
 turtle_model_a = create_turtle_buffer(list(gen_world(num_turtles // 2)))
 buffers = (
     ('turtle', turtle_model_a, num_turtles // 2),
-    ('triangle', turtle_model_b, num_turtles // 2),
+    ('classic', turtle_model_b, num_turtles // 2),
 )
 
 

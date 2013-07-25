@@ -4,6 +4,7 @@ from memory import (create_vertex_buffer, create_index_buffer)
 # normalised to -1.0 <-> 1.0 and rotated right by 90 degrees
 STANDARD_SHAPE_POLYGONS = {
     'turtle': {
+        'scale': 16.0,
         'vertex': (
             1.000000, 0.000000,
             0.875000, 0.125000,
@@ -56,6 +57,7 @@ STANDARD_SHAPE_POLYGONS = {
         ),
     },
     'square': {
+        'scale': 10.0,
         'vertex': (
             -1.000000, -1.000000,
             1.000000, -1.000000,
@@ -68,6 +70,7 @@ STANDARD_SHAPE_POLYGONS = {
         ),
     },
     'circle': {
+        'scale': 10.0,
         'vertex': (
             0.000000, -1.000000,
             0.309000, -0.951000,
@@ -112,6 +115,7 @@ STANDARD_SHAPE_POLYGONS = {
         ),
     },
     'triangle': {
+        'scale': 11.55,
         'vertex': (
             -0.499567, -0.865801,
             1.000000, 0.000000,
@@ -120,6 +124,7 @@ STANDARD_SHAPE_POLYGONS = {
         'index': (0, 1, 2)
     },
     'classic': {
+        'scale': 9.0,
         'vertex': (
             0.000000, 0.000000,
             -1.000000, 0.555556,
@@ -132,6 +137,7 @@ STANDARD_SHAPE_POLYGONS = {
         ),
     },
     'arrow': {
+        'scale': 10.0,
         'vertex': (
             0.000000, 1.000000,
             0.000000, -1.000000,
@@ -148,7 +154,8 @@ class TurtleGeometry(object):
     Uses cffi to create c-arrays for storing vertices, indexes, and normals.
     """
 
-    def __init__(self, vertices, indices):
+    def __init__(self, scale, vertices, indices):
+        self.scale = scale
         self.vertices = create_vertex_buffer(vertices)
         self.indices = create_index_buffer(indices)
         self.num_vertex = len(indices)
@@ -172,7 +179,8 @@ def convert_vec2_to_vec4(data):
 SHAPES = {}
 for name, data in STANDARD_SHAPE_POLYGONS.items():
     geom = TurtleGeometry(
+        data['scale'],
         list(convert_vec2_to_vec4(data['vertex'])),
-        data['index']
+        data['index'],
     )
     SHAPES[name] = geom

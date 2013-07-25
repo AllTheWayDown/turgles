@@ -67,7 +67,8 @@ class Renderer(BaseRenderer):
 
     def setup_program(self):
         self.program.bind()
-        self.program.uniforms['scale'].set(self.half_width, self.half_height)
+        self.program.uniforms['world_scale'].set(
+            self.half_width, self.half_height)
         self.vao = {}
         for shape, geom in SHAPES.items():
             self.vao[shape] = TurtleShapeVAO(shape, self.program, geom)
