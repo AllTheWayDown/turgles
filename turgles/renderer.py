@@ -8,27 +8,28 @@ from turgles.render.turtles import TurtleShapeVAO
 from turgles.geometry import SHAPES
 
 
-class BaseRenderer(object):
+class Renderer(object):
 
-    vertex_shader = None
-    fragment_shader = None
+    vertex_shader = 'shaders/turtles1.vert'
+    fragment_shader = 'shaders/turtles.frag'
 
     def __init__(
             self,
-            width, height,
-            samples=None,
-            vertex_shader=None, fragment_shader=None):
+            width,
+            height,
+            samples=None):
 
         self.width = width
         self.half_width = width // 2
         self.height = height
         self.half_height = height // 2
 
-        if vertex_shader is not None:
-            self.vertex_shader = vertex_shader
-        if fragment_shader is not None:
-            self.fragment_shader = fragment_shader
+        self.create_window(width, height, samples)
+        self.set_background_color()
+        self.compile_program()
+        self.setup_vaos()
 
+    def create_window(self, width, height, samples):
         kwargs = dict(double_buffer=True)
         if samples is not None:
             kwargs['sample_buffers'] = 1
@@ -43,29 +44,19 @@ class BaseRenderer(object):
             height=int(height)
         )
 
-        self.load_program()
-        self.setup_program()
-        self.set_background_color()
-
     def set_background_color(self, color=None):
         if color is None:
             glClearColor(1.0, 1.0, 1.0, 0.0)
         else:
             glClearColor(color[0], color[1], color[2], 0.0)
 
-    def load_program(self):
+    def compile_program(self):
         self.program = Program(
             open(self.vertex_shader).read(),
             open(self.fragment_shader).read()
         )
 
-
-class Renderer(BaseRenderer):
-    """Uses single instanced drawing, with custom math and storage"""
-    vertex_shader = 'shaders/turtles1.vert'
-    fragment_shader = 'shaders/turtles.frag'
-
-    def setup_program(self):
+    def setup_vaos(self):
         self.program.bind()
         self.program.uniforms['world_scale'].set(
             self.half_width, self.half_height)
