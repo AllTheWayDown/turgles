@@ -17,9 +17,8 @@ TURTLE_DATA_SIZE = 12
 # a
 
 
-def create_turtle_buffer(init):
-    assert len(init) % TURTLE_DATA_SIZE == 0
-    return ffi.new('float[]', init)
+def create_turtle_buffer(size):
+    return ffi.new('float[%s]' % (size * TURTLE_DATA_SIZE))
 
 
 def create_index_buffer(init):

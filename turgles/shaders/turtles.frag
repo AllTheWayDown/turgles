@@ -1,6 +1,6 @@
-varying vec4 out_Color;
+varying vec4 turtle_color;
 
 void main()
 {
-    gl_FragColor = out_Color;
+    gl_FragColor = turtle_color;
 }

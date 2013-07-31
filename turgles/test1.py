@@ -13,8 +13,7 @@ from turgles.config import (
     num_turtles,
     turtle_size,
 )
-from turgles.memory import create_turtle_buffer
-
+from turgles.memory import TURTLE_DATA_SIZE
 from turgles.random_walk import fast_update
 
 
@@ -36,24 +35,32 @@ def gen_world(n):
         yield 1.0       # alpha
 
 
-renderer = Renderer(world_size, world_size, samples=16)
-
-turtle_model_b = create_turtle_buffer(list(gen_world(num_turtles // 2)))
-turtle_model_a = create_turtle_buffer(list(gen_world(num_turtles // 2)))
-buffers = (
-    ('turtle', turtle_model_a, num_turtles // 2),
-    ('classic', turtle_model_b, num_turtles // 2),
+half_turtles = num_turtles // 2
+renderer = Renderer(
+    world_size,
+    world_size,
+    samples=16,
+    buffer_size=half_turtles
 )
+
+
+for i in range(half_turtles):
+    turtle = renderer.create_turtle_data('turtle')
+    turtle[0:TURTLE_DATA_SIZE] = list(gen_world(1))
+
+for i in range(half_turtles):
+    turtle = renderer.create_turtle_data('classic')
+    turtle[0:TURTLE_DATA_SIZE] = list(gen_world(1))
 
 
 @renderer.window.event
 def on_draw():
-    renderer.render(buffers)
+    renderer.render()
 
 
 def update(dt):
     with measure("update"):
-        fast_update(dt, buffers)
+        fast_update(dt, renderer.buffers.values())
 
 
 # patch idle func to measure full draw time

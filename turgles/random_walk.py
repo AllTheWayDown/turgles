@@ -17,14 +17,15 @@ turtle_data_size = 8
 
 def fast_update(dt, buffers):
     magnitude = speed * dt
-    for shape, data, size in buffers:
-        fast.random_walk_all(data, size, magnitude, half_size, 0.0, degrees)
+    for b in buffers:
+        fast.random_walk_all(
+            b.data, b.count, magnitude, half_size, 0.0, degrees)
 
 
 def slow_update(dt, buffers):
     magnitude = speed * dt
-    for shape, data, size in iter(buffers):
-        walk(data, size, magnitude, half_size, degrees)
+    for b in buffers:
+        walk(b.data, b.count, magnitude, half_size, degrees)
 
 
 def walk(data, size, magnitude, scale, degress):

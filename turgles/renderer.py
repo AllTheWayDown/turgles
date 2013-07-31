@@ -6,6 +6,7 @@ from turgles.gl.api import glClearColor
 from turgles.gl.program import Program
 from turgles.render.turtles import TurtleShapeVAO
 from turgles.geometry import SHAPES
+from turgles.buffer import TurtleBuffer
 
 
 class Renderer(object):
@@ -17,17 +18,22 @@ class Renderer(object):
             self,
             width,
             height,
-            samples=None):
+            samples=None,
+            buffer_size=16):
 
         self.width = width
         self.half_width = width // 2
         self.height = height
         self.half_height = height // 2
+        self.buffer_size = buffer_size
 
         self.create_window(width, height, samples)
         self.set_background_color()
         self.compile_program()
         self.setup_vaos()
+
+        # per-shape buffers for turtle data
+        self.buffers = {}
 
     def create_window(self, width, height, samples):
         kwargs = dict(double_buffer=True)
@@ -64,8 +70,23 @@ class Renderer(object):
         for shape, geom in SHAPES.items():
             self.vao[shape] = TurtleShapeVAO(shape, self.program, geom)
 
-    def render(self, buffers):
+    def render(self):
         self.window.clear()
-        for shape, data, size in buffers:
-            vao = self.vao[shape]
-            vao.render(data, size)
+        for buffer in self.buffers.values():
+            vao = self.vao[buffer.shape]
+            vao.render(buffer.data, buffer.size)
+
+    def create_turtle_data(self, shape):
+        buffer = self.get_buffer(shape)
+        try:
+            return buffer.new()
+        except TurtleBuffer.Full:
+            raise
+
+    def get_buffer(self, shape):
+        if shape in self.buffers:
+            return self.buffers[shape]
+
+        buffer = TurtleBuffer(shape, self.buffer_size)
+        self.buffers[shape] = buffer
+        return buffer

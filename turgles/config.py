@@ -1,6 +1,6 @@
 world_size = 800.0
 half_size = world_size // 2
-turtle_size = 1.0
+turtle_size = 1
 num_turtles = 1000
 shape = 'turtle'
 
