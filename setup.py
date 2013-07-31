@@ -1,19 +1,22 @@
 import os
 from setuptools import setup, find_packages
 
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name = "turgles",
-    version = "0.1",
-    author = "Simon Davy",
-    author_email = "bloodearnest@gmail.com",
-    description = ("An OpenGL ES renderer for LOGO style turtles."),
-    license = "MIT",
-    keywords = "turtle education kids opengl",
-    url = "https://github.com/AllTheWayDown/turgles",
-    packages=find_packages(),
+    name="turgles",
+    version="0.1",
+    author="Simon Davy",
+    author_email="bloodearnest@gmail.com",
+    description=("An OpenGL ES renderer for LOGO style turtles."),
+    license="MIT",
+    keywords="turtle education kids opengl",
+    url="https://github.com/AllTheWayDown/turgles",
+    packages=find_packages(exclude=['tests']),
+    package_dir={'turgles': 'turgles'},
+    package_data={'turgles': ['shaders/*.vert', 'shaders/*.frag']},
     long_description=read('README.rst'),
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
@@ -27,4 +30,5 @@ setup(
         "Topic :: Education",
         "Topic :: Games/Entertainment :: Simulation",
     ],
+    test_suite='turgles.tests',
 )

@@ -11,7 +11,7 @@ from turgles.buffer import TurtleBuffer
 
 class Renderer(object):
 
-    vertex_shader = 'shaders/turtles1.vert'
+    vertex_shader = 'shaders/turtles.vert'
     fragment_shader = 'shaders/turtles.frag'
 
     def __init__(

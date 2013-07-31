@@ -36,6 +36,18 @@ class ShaderError(Exception):
     pass
 
 
+class VertexShaderError(ShaderError):
+    pass
+
+
+class FragmentShaderError(ShaderError):
+    pass
+
+
+class ShaderLinkerError(ShaderError):
+    pass
+
+
 def convert_to_cstring(pystring):
     utf_string = pystring.encode('utf8')
     return cast(c_char_p(utf_string), POINTER(c_char))
@@ -88,7 +100,11 @@ class Program:
             shader_id, GL_OBJECT_COMPILE_STATUS_ARB, byref(status))
 
         if not status:
-            raise ShaderError(get_shader_log(shader_id))
+            if type == GL_VERTEX_SHADER:
+                exc = VertexShaderError
+            else:
+                exc = FragmentShaderError
+            raise exc(get_shader_log(shader_id))
         else:
             glAttachShader(self.id, shader_id)
 
@@ -97,7 +113,7 @@ class Program:
         status = c_int(0)
         glGetProgramiv(self.id, GL_LINK_STATUS, byref(status))
         if not status:
-            raise ShaderError(get_program_log(self.id))
+            raise ShaderLinkerError(get_program_log(self.id))
 
     def bind(self):
         glUseProgram(self.id)
