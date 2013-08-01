@@ -1,4 +1,7 @@
 from __future__ import division, print_function, absolute_import
+import logging
+
+log = logging.getLogger('turgles')
 
 import pyglet
 
@@ -76,12 +79,24 @@ class Renderer(object):
             vao = self.vao[buffer.shape]
             vao.render(buffer.data, buffer.size)
 
-    def create_turtle_data(self, shape):
+    def create_turtle_data(self, shape, init=None):
         buffer = self.get_buffer(shape)
+        resize = False
         try:
-            return buffer.new()
+            id, data = buffer.new(init)
         except TurtleBuffer.Full:
-            raise
+            resize = True
+
+        if resize:
+            log.debug(
+                "resizing turtle buffer from {} to {} for shape {}".format(
+                    buffer.size, buffer.size * 2, buffer.shape)
+            )
+            new_buffer = TurtleBuffer.copy(buffer, buffer.size * 2)
+            self.buffers[shape] = new_buffer
+            id, data = new_buffer.new(init)
+
+        return id, data
 
     def get_buffer(self, shape):
         if shape in self.buffers:

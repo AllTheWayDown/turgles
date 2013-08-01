@@ -1,4 +1,7 @@
 from __future__ import division, print_function, absolute_import
+import logging
+
+logging.basicConfig()
 
 from random import random
 from math import radians, cos, sin
@@ -13,7 +16,6 @@ from turgles.config import (
     num_turtles,
     turtle_size,
 )
-from turgles.memory import TURTLE_DATA_SIZE
 from turgles.random_walk import fast_update
 
 
@@ -40,17 +42,14 @@ renderer = Renderer(
     world_size,
     world_size,
     samples=16,
-    buffer_size=half_turtles
 )
 
 
 for i in range(half_turtles):
-    turtle = renderer.create_turtle_data('turtle')
-    turtle[0:TURTLE_DATA_SIZE] = list(gen_world(1))
+    renderer.create_turtle_data('turtle', list(gen_world(1)))
 
 for i in range(half_turtles):
-    turtle = renderer.create_turtle_data('classic')
-    turtle[0:TURTLE_DATA_SIZE] = list(gen_world(1))
+    renderer.create_turtle_data('classic', list(gen_world(1)))
 
 
 @renderer.window.event
