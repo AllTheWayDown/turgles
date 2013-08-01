@@ -1,7 +1,5 @@
 from __future__ import division, print_function, absolute_import
-import logging
-
-log = logging.getLogger('turgles')
+import itertools
 
 import pyglet
 
@@ -10,6 +8,8 @@ from turgles.gl.program import Program
 from turgles.render.turtles import TurtleShapeVAO
 from turgles.geometry import SHAPES
 from turgles.buffer import TurtleBuffer
+
+TURTLE_ID = itertools.count()
 
 
 class Renderer(object):
@@ -37,6 +37,7 @@ class Renderer(object):
 
         # per-shape buffers for turtle data
         self.buffers = {}
+        self.id_to_shape = {}
 
     def create_window(self, width, height, samples):
         kwargs = dict(double_buffer=True)
@@ -80,23 +81,25 @@ class Renderer(object):
             vao.render(buffer.data, buffer.size)
 
     def create_turtle_data(self, shape, init=None):
-        buffer = self.get_buffer(shape)
-        resize = False
-        try:
-            id, data = buffer.new(init)
-        except TurtleBuffer.Full:
-            resize = True
-
-        if resize:
-            log.debug(
-                "resizing turtle buffer from {} to {} for shape {}".format(
-                    buffer.size, buffer.size * 2, buffer.shape)
-            )
-            new_buffer = TurtleBuffer.copy(buffer, buffer.size * 2)
-            self.buffers[shape] = new_buffer
-            id, data = new_buffer.new(init)
-
+        """Public api to ninjaturtle"""
+        id = next(TURTLE_ID)
+        data = self._create_turtle(shape, id, init)
+        self.id_to_shape[id] = shape
         return id, data
+
+    def _create_turtle(self, shape, id, init=None):
+        buffer = self.get_buffer(shape)
+        data = buffer.new(id, init)
+        return data
+
+    def set_shape(self, id, new_shape):
+        """Copies the turtle data from the old shape buffer to the new"""
+        old_shape = self.id_to_shape[id]
+        old_buffer = self.get_buffer(old_shape)
+        data = old_buffer.get(id)
+        new_data = self._create_turtle(new_shape, id, data)
+        old_buffer.remove(id)
+        return new_data
 
     def get_buffer(self, shape):
         if shape in self.buffers:

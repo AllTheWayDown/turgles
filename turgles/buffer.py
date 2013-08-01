@@ -1,25 +1,18 @@
 from __future__ import division, print_function, absolute_import
-from itertools import count
+import logging
+log = logging.getLogger('turgles')
 
 from turgles.memory import create_turtle_buffer, TURTLE_DATA_SIZE
-
-TURTLE_ID = count()
-
-ID_TO_INDEX = {}
-INDEX_TO_ID = {}
 
 
 class TurtleBuffer(object):
     """A managed buffer of turtle data"""
 
-    class Full(Exception):
-        pass
-
     def __init__(self, shape, size):
         self.shape = shape
         self.size = size
         self.count = 0
-        self.data = create_turtle_buffer(size)
+        self.data = create_turtle_buffer(self.size)
         self.id_to_index = {}
         self.index_to_id = {}
 
@@ -33,13 +26,16 @@ class TurtleBuffer(object):
         self.id_to_index[id] = index
         self.index_to_id[index] = id
 
-    def new(self, init=None):
-        if self.count >= self.size:
-            raise self.Full()
+    def get(self, id):
+        return self._get_data(self.id_to_index[id])
+
+    def new(self, id, init=None):
+        assert id not in self.id_to_index
         if init is not None:
             assert len(init) == TURTLE_DATA_SIZE
+        if self.count >= self.size:
+            self._resize()
 
-        id = next(TURTLE_ID)
         data = self._get_data(self.count)
         self._update_id_map(id, self.count)
 
@@ -47,7 +43,18 @@ class TurtleBuffer(object):
         if init is not None:
             data[0:TURTLE_DATA_SIZE] = init
 
-        return id, data
+        return data
+
+    def _resize(self):
+        """Creates a larger buffer, copying in the old buffer's data"""
+        log.debug(
+            "resizing turtle buffer from {} to {} for shape {}".format(
+                self.size, self.size * 2, self.shape)
+        )
+        new_data = create_turtle_buffer(self.size * 2)
+        new_data[0:self.size * TURTLE_DATA_SIZE] = self.data
+        self.size *= 2
+        self.data = new_data
 
     def remove(self, id):
         remove_index = self.id_to_index[id]
@@ -70,12 +77,3 @@ class TurtleBuffer(object):
         del self.index_to_id[last_index]
         del self.id_to_index[id]
         self.count -= 1
-
-    @classmethod
-    def copy(cls, old, size):
-        """Creates a larger buffer, copying in the old buffer's data"""
-        assert size > old.size
-        new = cls(old.shape, size)
-        new.data[0:old.size * TURTLE_DATA_SIZE] = old.data
-        new.count = old.count
-        return new
