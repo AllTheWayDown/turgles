@@ -32,6 +32,12 @@ class TurtleBufferTestCase(TestCase):
         self.assertEqual(list(data), [0] * TURTLE_DATA_SIZE)
         self.assertEqual(buffer.count, 1)
 
+    def test_new_bad_id(self):
+        buffer = TurtleBuffer('shape', 4)
+        buffer.new(0)
+        with self.assertRaises(AssertionError):
+            buffer.new(0)
+
     def test_new_with_init(self):
         buffer = TurtleBuffer('shape', 4)
         init = list(reversed(range(TURTLE_DATA_SIZE)))
