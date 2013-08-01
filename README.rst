@@ -11,9 +11,9 @@ Hard Goals:
  - Full 3d camera
  - Custom 3D turle geometry
  - Scales to 10,000 turtles
+ - Texture mapping images as turtle
 
 Stretch Goals:
- - Texture mapping images as turtle
  - Drop in replacement renderer for stdlib turtle module\*
  - Use shaders to simulate turtle world, not just render
  - Extensible (custom turtle shaders, new world objects)
