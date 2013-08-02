@@ -2,6 +2,8 @@ from __future__ import division, print_function, absolute_import
 
 import pyglet
 
+import pkg_resources
+
 from turgles.buffer import BufferManager
 from turgles.geometry import SHAPES
 from turgles.gl.api import glClearColor
@@ -11,8 +13,10 @@ from turgles.render.turtles import TurtleShapeVAO
 
 class Renderer(object):
 
-    vertex_shader = 'shaders/turtles.vert'
-    fragment_shader = 'shaders/turtles.frag'
+    vertex_shader = pkg_resources.resource_string(
+        'turgles', 'shaders/turtles.vert').decode('utf8')
+    fragment_shader = pkg_resources.resource_string(
+        'turgles', 'shaders/turtles.frag').decode('utf8')
 
     def __init__(
             self,
@@ -55,10 +59,7 @@ class Renderer(object):
             glClearColor(color[0], color[1], color[2], 0.0)
 
     def compile_program(self):
-        self.program = Program(
-            open(self.vertex_shader).read(),
-            open(self.fragment_shader).read()
-        )
+        self.program = Program(self.vertex_shader, self.fragment_shader)
 
     def setup_vaos(self):
         self.program.bind()
