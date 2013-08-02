@@ -70,11 +70,13 @@ class Renderer(object):
             self.vao[shape] = TurtleShapeVAO(shape, self.program, geom)
 
     # ninjaturtle interface
-    def render(self):
+    def render(self, flip=True):
         self.window.clear()
         for buffer in self.manager.buffers.values():
             vao = self.vao[buffer.shape]
-            vao.render(buffer.data, buffer.size)
+            vao.render(buffer.data, buffer.count)
+        if flip:
+            self.window.flip()
 
     # ninjaturtle interface
     def create_turtle_data(self, shape, init=None):

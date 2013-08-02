@@ -34,7 +34,6 @@ class TurtleShapeVAO(object):
         self.turtle_attr1 = glGetAttribLocation(self.program.id, b"turtle1")
         self.turtle_attr2 = glGetAttribLocation(self.program.id, b"turtle2")
         self.turtle_attr3 = glGetAttribLocation(self.program.id, b"turtle3")
-        print(self.turtle_attr1, self.turtle_attr2, self.turtle_attr3)
 
         # create VAO to store Vertex attribute state for later
         self.vao = GLuint()
@@ -73,7 +72,7 @@ class TurtleShapeVAO(object):
         glBindVertexArray(self.vao)
 
         with measure("load {}".format(self.name)):
-            self.turtle_buffer.load(turtle_data)
+            self.turtle_buffer.load(turtle_data, num_turtles)
             self.program.uniforms['geometry_scale'].set(self.geometry.scale)
 
         with measure("draw {}".format(self.name)):

@@ -10,7 +10,7 @@ from turgles.gl.api import (
     glVertexAttribPointer,
 )
 
-from turgles.memory import to_pointer, size_in_bytes
+from turgles.memory import to_pointer, sizeof, TURTLE_DATA_SIZE
 from turgles.gl.util import GL_TYPEMAP
 
 
@@ -39,9 +39,14 @@ class Buffer(object):
     def load(self, data, n=None):
         """Data is cffi array"""
         self.bind()
+        if n is None:
+            # ffi's size of understands arrays
+            size = sizeof(data)
+        else:
+            size = 4 * TURTLE_DATA_SIZE * n
         glBufferData(
             self.array_type,
-            size_in_bytes(data),
+            size,
             to_pointer(data),
             self.draw_type)
         self.unbind()

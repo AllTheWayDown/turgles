@@ -1,4 +1,4 @@
-from memory import (create_vertex_buffer, create_index_buffer)
+from turgles.memory import (create_vertex_buffer, create_index_buffer)
 
 # generated from shapes in turtle module
 # normalised to -1.0 <-> 1.0 and rotated right by 90 degrees

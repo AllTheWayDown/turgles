@@ -38,4 +38,4 @@ def to_pointer(ctype):
     return int(ffi.cast('long', ctype))
 
 # short cut
-size_in_bytes = ffi.sizeof
+sizeof = ffi.sizeof

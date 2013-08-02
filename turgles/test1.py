@@ -54,7 +54,7 @@ for i in range(half_turtles):
 
 @renderer.window.event
 def on_draw():
-    renderer.render()
+    renderer.render(flip=False)
 
 
 def update(dt):

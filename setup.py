@@ -31,4 +31,9 @@ setup(
         "Topic :: Games/Entertainment :: Simulation",
     ],
     test_suite='turgles.tests',
+    install_requires=[
+        'cffi==0.7',
+        'pycparser==2.09.1',
+        'pyglet==1.2alpha1',
+    ],
 )

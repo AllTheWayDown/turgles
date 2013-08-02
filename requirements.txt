@@ -1,2 +1,11 @@
+# I want to use pypi
+#--index https://pypi.python.org/simple/
+
+# dev dependancies
+wheel==0.21.0
+
+# non-pypi dependancies
 https://pyglet.googlecode.com/files/pyglet-1.2alpha1.tar.gz
-cffi==0.7.0
+
+# install this project in develop mode from setup.py
+-e .
