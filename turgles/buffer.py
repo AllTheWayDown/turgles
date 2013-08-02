@@ -1,4 +1,5 @@
 from __future__ import division, print_function, absolute_import
+import itertools
 import logging
 log = logging.getLogger('turgles')
 
@@ -77,3 +78,51 @@ class TurtleBuffer(object):
         del self.index_to_id[last_index]
         del self.id_to_index[id]
         self.count -= 1
+
+
+class BufferManager(object):
+
+    TURTLE_ID = itertools.count()
+
+    def __init__(self, size):
+        self.size = size
+        self.buffers = {}
+        self.id_to_shape = {}
+
+    def get_id(self):
+        return next(self.TURTLE_ID)
+
+    def get_buffer(self, shape):
+        if shape in self.buffers:
+            return self.buffers[shape]
+
+        buffer = TurtleBuffer(shape, self.size)
+        self.buffers[shape] = buffer
+        return buffer
+
+    def create_turtle(self, shape, init=None):
+        """Public api to ninjaturtle"""
+        id = self.get_id()
+        data = self._create_turtle(shape, id, init)
+        self.id_to_shape[id] = shape
+        return id, data
+
+    def _create_turtle(self, shape, id, init=None):
+        buffer = self.get_buffer(shape)
+        data = buffer.new(id, init)
+        return data
+
+    def set_shape(self, id, new_shape):
+        """Copies the turtle data from the old shape buffer to the new"""
+        old_shape = self.id_to_shape[id]
+        old_buffer = self.get_buffer(old_shape)
+        data = old_buffer.get(id)
+        new_data = self._create_turtle(new_shape, id, data)
+        old_buffer.remove(id)
+        return new_data
+
+    def destroy_turtle(self, id):
+        shape = self.id_to_shape[id]
+        buffer = self.get_buffer(shape)
+        buffer.remove(id)
+        del self.id_to_shape[id]

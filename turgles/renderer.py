@@ -1,15 +1,12 @@
 from __future__ import division, print_function, absolute_import
-import itertools
 
 import pyglet
 
+from turgles.buffer import BufferManager
+from turgles.geometry import SHAPES
 from turgles.gl.api import glClearColor
 from turgles.gl.program import Program
 from turgles.render.turtles import TurtleShapeVAO
-from turgles.geometry import SHAPES
-from turgles.buffer import TurtleBuffer
-
-TURTLE_ID = itertools.count()
 
 
 class Renderer(object):
@@ -28,16 +25,13 @@ class Renderer(object):
         self.half_width = width // 2
         self.height = height
         self.half_height = height // 2
-        self.buffer_size = buffer_size
 
         self.create_window(width, height, samples)
         self.set_background_color()
         self.compile_program()
         self.setup_vaos()
 
-        # per-shape buffers for turtle data
-        self.buffers = {}
-        self.id_to_shape = {}
+        self.manager = BufferManager(buffer_size)
 
     def create_window(self, width, height, samples):
         kwargs = dict(double_buffer=True)
@@ -74,37 +68,21 @@ class Renderer(object):
         for shape, geom in SHAPES.items():
             self.vao[shape] = TurtleShapeVAO(shape, self.program, geom)
 
+    # ninjaturtle interface
     def render(self):
         self.window.clear()
-        for buffer in self.buffers.values():
+        for buffer in self.manager.buffers.values():
             vao = self.vao[buffer.shape]
             vao.render(buffer.data, buffer.size)
 
+    # ninjaturtle interface
     def create_turtle_data(self, shape, init=None):
-        """Public api to ninjaturtle"""
-        id = next(TURTLE_ID)
-        data = self._create_turtle(shape, id, init)
-        self.id_to_shape[id] = shape
-        return id, data
+        return self.manager.create_turtle(shape, init)
 
-    def _create_turtle(self, shape, id, init=None):
-        buffer = self.get_buffer(shape)
-        data = buffer.new(id, init)
-        return data
+    # ninjaturtle interface
+    def destroy_turtle_data(self, id):
+        self.manager.destroy_turtle(id)
 
-    def set_shape(self, id, new_shape):
-        """Copies the turtle data from the old shape buffer to the new"""
-        old_shape = self.id_to_shape[id]
-        old_buffer = self.get_buffer(old_shape)
-        data = old_buffer.get(id)
-        new_data = self._create_turtle(new_shape, id, data)
-        old_buffer.remove(id)
-        return new_data
-
-    def get_buffer(self, shape):
-        if shape in self.buffers:
-            return self.buffers[shape]
-
-        buffer = TurtleBuffer(shape, self.buffer_size)
-        self.buffers[shape] = buffer
-        return buffer
+    # ninjaturtle interface
+    def set_shape(self, id, shape):
+        self.manager.set_shape(id, shape)

@@ -59,7 +59,7 @@ def on_draw():
 
 def update(dt):
     with measure("update"):
-        fast_update(dt, renderer.buffers.values())
+        fast_update(dt, renderer.manager.buffers.values())
 
 
 # patch idle func to measure full draw time
