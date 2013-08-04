@@ -119,6 +119,7 @@ class BufferManager(object):
         data = old_buffer.get(id)
         new_data = self._create_turtle(new_shape, id, data)
         old_buffer.remove(id)
+        self.id_to_shape[id] = new_shape
         return new_data
 
     def destroy_turtle(self, id):

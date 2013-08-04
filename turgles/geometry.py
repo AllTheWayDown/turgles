@@ -158,6 +158,9 @@ class TurtleGeometry(object):
         self.scale = scale
         self.vertices = create_vertex_buffer(vertices)
         self.indices = create_index_buffer(indices)
+
+        self.indices_outline = create_index_buffer(
+                list(range(len(vertices)//4)))
         self.num_vertex = len(indices)
 
     @classmethod

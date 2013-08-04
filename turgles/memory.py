@@ -23,7 +23,6 @@ def create_turtle_buffer(size):
 
 def create_index_buffer(init):
     """indexes of vertex triangles"""
-    assert len(init) % 3 == 0
     return ffi.new('unsigned short[]', init)
 
 

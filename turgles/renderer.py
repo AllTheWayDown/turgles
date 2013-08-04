@@ -73,8 +73,9 @@ class Renderer(object):
     def render(self, flip=True):
         self.window.clear()
         for buffer in self.manager.buffers.values():
-            vao = self.vao[buffer.shape]
-            vao.render(buffer.data, buffer.count)
+            if buffer.count > 0:
+                vao = self.vao[buffer.shape]
+                vao.render(buffer.data, buffer.count)
         if flip:
             self.window.flip()
 
@@ -88,4 +89,4 @@ class Renderer(object):
 
     # ninjaturtle interface
     def set_shape(self, id, shape):
-        self.manager.set_shape(id, shape)
+        return self.manager.set_shape(id, shape)

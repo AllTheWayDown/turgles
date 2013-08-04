@@ -33,7 +33,8 @@ class TurtleShapeVAO(object):
         self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
         self.turtle_attr1 = glGetAttribLocation(self.program.id, b"turtle1")
         self.turtle_attr2 = glGetAttribLocation(self.program.id, b"turtle2")
-        self.turtle_attr3 = glGetAttribLocation(self.program.id, b"turtle3")
+        self.turtle_attr3 = glGetAttribLocation(
+            self.program.id, b"turtle_fill_color")
 
         # create VAO to store Vertex attribute state for later
         self.vao = GLuint()

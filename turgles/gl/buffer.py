@@ -40,7 +40,7 @@ class Buffer(object):
         """Data is cffi array"""
         self.bind()
         if n is None:
-            # ffi's size of understands arrays
+            # ffi's sizeof of understands arrays
             size = sizeof(data)
         else:
             size = 4 * TURTLE_DATA_SIZE * n

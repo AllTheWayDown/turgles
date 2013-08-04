@@ -1,11 +1,18 @@
 
 
+turtle outlines, either 
+a) redraw turtle vertices with GL_LINE_LOOP (simple but slow)
+b) use texcoords/fragment shader to color edges (how to control thickness?)
+
 camera/perspective transform and controls
 
-load complex 3d mesh
-
-z-buffer for ordering indepentent of shape buffer
 
 textured turtle images
 
+load complex 3d mesh
+
+defer turtle moving/removal until render, and do a whole array compaction, to
+perform better when multiple turtles are (re)moved in a frame
+
+per turtle z-buffer for ordering indepentent of shape buffer draw order
 
