@@ -2,6 +2,7 @@ from turgles.gl.api import (
     GL_ARRAY_BUFFER,
     glBindBuffer,
     glBufferData,
+    glBufferSubData,
     glEnableVertexAttribArray,
     GL_FALSE,
     glGenBuffers,
@@ -10,7 +11,7 @@ from turgles.gl.api import (
     glVertexAttribPointer,
 )
 
-from turgles.memory import to_pointer, sizeof, TURTLE_DATA_SIZE
+from turgles.memory import to_pointer, sizeof
 from turgles.gl.util import GL_TYPEMAP
 
 
@@ -26,6 +27,9 @@ class Buffer(object):
         self.element_flag, self.element_size = GL_TYPEMAP[element_type]
         self.draw_type = draw_type
 
+        # how much GPU memory have we added so far
+        self.buffer_size = 0
+
         self.id = GLuint()
         glGenBuffers(1, self.id)
 
@@ -36,19 +40,29 @@ class Buffer(object):
         """Same for all buffer types"""
         glBindBuffer(self.array_type, 0)
 
-    def load(self, data, n=None):
+    def load(self, data, size=None):
         """Data is cffi array"""
         self.bind()
-        if n is None:
-            # ffi's sizeof of understands arrays
+        if size is None:
+            # ffi's sizeof understands arrays
             size = sizeof(data)
+        if size == self.buffer_size:
+            # same size - no need to allocate new buffer, just copy
+            glBufferSubData(
+                self.array_type,
+                0,
+                size,
+                to_pointer(data)
+            )
         else:
-            size = 4 * TURTLE_DATA_SIZE * n
-        glBufferData(
-            self.array_type,
-            size,
-            to_pointer(data),
-            self.draw_type)
+            # buffer size has changed - need to allocate new buffer in the GPU
+            glBufferData(
+                self.array_type,
+                size,
+                to_pointer(data),
+                self.draw_type
+            )
+            self.buffer_size = size
         self.unbind()
 
 

@@ -41,6 +41,7 @@ half_turtles = num_turtles // 2
 renderer = Renderer(
     world_size,
     world_size,
+    buffer_size=half_turtles,
     samples=16,
 )
 

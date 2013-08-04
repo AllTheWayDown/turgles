@@ -16,7 +16,6 @@ from turgles.gl.api import (
 )
 
 from turgles.gl.buffer import VertexBuffer, Buffer
-from turgles.util import measure
 from turgles.memory import TURTLE_DATA_SIZE
 
 
@@ -72,18 +71,17 @@ class TurtleShapeVAO(object):
         self.program.bind()
         glBindVertexArray(self.vao)
 
-        with measure("load {}".format(self.name)):
-            self.turtle_buffer.load(turtle_data, num_turtles)
-            self.program.uniforms['geometry_scale'].set(self.geometry.scale)
+        self.turtle_buffer.load(
+            turtle_data, num_turtles * TURTLE_DATA_SIZE * 4)
+        self.program.uniforms['geometry_scale'].set(self.geometry.scale)
 
-        with measure("draw {}".format(self.name)):
-            glDrawElementsInstanced(
-                GL_TRIANGLES,
-                self.geometry.num_vertex,
-                GL_UNSIGNED_SHORT,
-                0,
-                num_turtles
-            )
+        glDrawElementsInstanced(
+            GL_TRIANGLES,
+            self.geometry.num_vertex,
+            GL_UNSIGNED_SHORT,
+            0,
+            num_turtles
+        )
 
         glBindVertexArray(0)
         self.program.unbind()
