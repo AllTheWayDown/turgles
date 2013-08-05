@@ -11,8 +11,8 @@ from turgles.renderer import Renderer
 from turgles.util import measure
 
 from turgles.config import (
-    world_size,
-    half_size,
+    world_width,
+    world_height,
     num_turtles,
     turtle_size,
 )
@@ -23,8 +23,8 @@ def gen_world(n):
     for i in range(n):
         d = random() * 360.0
         t = radians(d)
-        yield random() * world_size - half_size
-        yield random() * world_size - half_size
+        yield random() * world_width - world_width//2
+        yield random() * world_height - world_height//2
         yield turtle_size  # * random() + 1.0
         yield turtle_size  # * random() + 1.0
         yield d
@@ -39,8 +39,8 @@ def gen_world(n):
 
 half_turtles = num_turtles // 2
 renderer = Renderer(
-    world_size,
-    world_size,
+    world_width,
+    world_height,
     buffer_size=half_turtles,
     samples=16,
 )

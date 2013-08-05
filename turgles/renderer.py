@@ -1,14 +1,34 @@
 from __future__ import division, print_function, absolute_import
-
-import pyglet
+from math import tan, radians
 
 import pkg_resources
 
+import pyglet
+from pyglet.window import key
+
 from turgles.buffer import BufferManager
 from turgles.geometry import SHAPES
-from turgles.gl.api import glClearColor
+from turgles.gl.api import (
+    glClearColor,
+    glDepthFunc,
+    glDepthMask,
+    glDepthRangef,
+    GLsizei,
+    GL_DEPTH_TEST,
+    glEnable,
+    GL_LEQUAL,
+    GL_TRUE,
+    glViewport,
+)
 from turgles.gl.program import Program
 from turgles.render.turtles import TurtleShapeVAO
+
+
+def identity():
+    return [1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1]
 
 
 class Renderer(object):
@@ -37,6 +57,14 @@ class Renderer(object):
 
         self.manager = BufferManager(buffer_size)
 
+        self.perspective_matrix = identity()
+        self.set_perspective()
+        self.view_matrix = identity()
+        self.view_matrix[12] = 0.0
+        self.view_matrix[13] = 0.0
+        self.view_matrix[14] = 0.0
+        self.set_view()
+
     def create_window(self, width, height, samples):
         kwargs = dict(double_buffer=True)
         if samples is not None:
@@ -51,6 +79,64 @@ class Renderer(object):
             width=int(width),
             height=int(height)
         )
+        glEnable(GL_DEPTH_TEST)
+        glDepthMask(GL_TRUE)
+        glDepthFunc(GL_LEQUAL)
+        glDepthRangef(0.0, 1.0)
+
+        step = 0.05
+
+        @self.window.event
+        def on_key_press(symbol, modifiers):
+            if symbol == key.LEFT:
+                self.view_matrix[12] += step
+            elif symbol == key.RIGHT:
+                self.view_matrix[12] -= step
+            elif symbol == key.UP:
+                self.view_matrix[13] += step
+            elif symbol == key.DOWN:
+                self.view_matrix[13] -= step
+            elif symbol == key.PLUS:
+                self.view_matrix[14] += step
+                print("plus", self.view_matrix[14])
+            elif symbol == key.MINUS:
+                self.view_matrix[14] -= step
+                print("minus", self.view_matrix[14])
+            self.set_view()
+
+        @self.window.event
+        def on_resize(width, height):
+            self.width = width
+            self.height = height
+            self.set_perspective()
+            return pyglet.event.EVENT_HANDLED
+
+    def set_perspective(self, near=0, far=10.0, fov=45.0):
+        scale = 1.0 / tan(radians(fov) / 2.0)
+        diff = near - far
+        scale = 1.0
+        self.perspective_matrix[0] = scale / (self.width / self.height)
+        self.perspective_matrix[5] = scale  # / (self.width / self.height)
+        self.perspective_matrix[10] = (far + near) / diff
+        self.perspective_matrix[11] = -1.0
+        self.perspective_matrix[14] = (2 * far * near) / diff
+        self.program.bind()
+        self.program.uniforms['projection'].set_matrix(
+            self.perspective_matrix)
+        m = min(self.width, self.height) // 2
+        self.program.uniforms['world_scale'].set(m, m)
+        self.program.unbind()
+        glViewport(
+            0, 0,
+            (GLsizei)(int(self.width)),
+            (GLsizei)(int(self.height))
+        )
+
+    def set_view(self):
+        self.program.bind()
+        self.program.uniforms['view'].set_matrix(
+            self.view_matrix)
+        self.program.unbind()
 
     def set_background_color(self, color=None):
         if color is None:
@@ -63,13 +149,11 @@ class Renderer(object):
 
     def setup_vaos(self):
         self.program.bind()
-        self.program.uniforms['world_scale'].set(
-            self.half_width, self.half_height)
         self.vao = {}
         for shape, geom in SHAPES.items():
             self.vao[shape] = TurtleShapeVAO(shape, self.program, geom)
 
-    # ninjaturtle interface
+    # ninjaturtle engine interface
     def render(self, flip=True):
         self.window.clear()
         for buffer in self.manager.buffers.values():
@@ -79,14 +163,14 @@ class Renderer(object):
         if flip:
             self.window.flip()
 
-    # ninjaturtle interface
+    # ninjaturtle engine interface
     def create_turtle_data(self, shape, init=None):
         return self.manager.create_turtle(shape, init)
 
-    # ninjaturtle interface
+    # ninjaturtle engine interface
     def destroy_turtle_data(self, id):
         self.manager.destroy_turtle(id)
 
-    # ninjaturtle interface
+    # ninjaturtle engine interface
     def set_shape(self, id, shape):
         return self.manager.set_shape(id, shape)

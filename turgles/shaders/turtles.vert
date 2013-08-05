@@ -1,5 +1,7 @@
 uniform vec2 world_scale;
 uniform float geometry_scale;
+uniform mat4 projection;
+uniform mat4 view;
 
 attribute vec4 vertex;
 attribute vec4 turtle1; // x, y, scale x, scale y
@@ -14,14 +16,15 @@ void main()
     float scale_y = turtle1.w / world_scale.y * geometry_scale;
     float ct = turtle2.z;
     float st = turtle2.w;
-    // hand-rolled 2d scale, transform, and rotate in z axis matrix
-    mat4 model = mat4(
+    // hand-rolled 2d scale/transform/rotate in row-major format
+    mat4 model = transpose(mat4(
         ct * scale_x, -st * scale_y,  0.0, turtle1.x / world_scale.x,
         st * scale_x,  ct * scale_y,  0.0, turtle1.y / world_scale.y,
         0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 1.0
-    );
-    vec4 world_vertex = vertex * model;
+    ));
+    mat4 transform = projection * view * model;
+    vec4 world_vertex = transform * vertex;
     gl_Position = world_vertex;
     out_turtle_color = turtle_fill_color;
 }

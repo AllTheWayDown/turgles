@@ -4,6 +4,7 @@ from ctypes import (
 )
 
 from turgles.gl.api import (
+    GL_FALSE,
     GL_FLOAT,
     GL_FLOAT_VEC2,
     GL_FLOAT_VEC3,
@@ -12,6 +13,9 @@ from turgles.gl.api import (
     GL_INT_VEC2,
     GL_INT_VEC3,
     GL_INT_VEC4,
+    GL_FLOAT_MAT2,
+    GL_FLOAT_MAT3,
+    GL_FLOAT_MAT4,
     GLint,
     GLsizei,
     GLenum,
@@ -24,6 +28,9 @@ from turgles.gl.api import (
     glUniform2i,
     glUniform3i,
     glUniform4i,
+    glUniformMatrix2fv,
+    glUniformMatrix3fv,
+    glUniformMatrix4fv,
     glGetUniformfv,
     glGetUniformiv,
     glGetActiveUniform,
@@ -71,7 +78,14 @@ class Uniform(object):
         GL_INT_VEC4: (GLint, 4),
     }
 
+    UNIFORM_MATRIX_TYPES = {
+        GL_FLOAT_MAT2: (GLfloat, 4),
+        GL_FLOAT_MAT3: (GLfloat, 9),
+        GL_FLOAT_MAT4: (GLfloat, 16),
+    }
+
     SETTERS = {
+        # argument settings
         GL_FLOAT: glUniform1f,
         GL_FLOAT_VEC2: glUniform2f,
         GL_FLOAT_VEC3: glUniform3f,
@@ -80,6 +94,10 @@ class Uniform(object):
         GL_INT_VEC2: glUniform2i,
         GL_INT_VEC3: glUniform3i,
         GL_INT_VEC4: glUniform4i,
+        # v setters
+        GL_FLOAT_MAT2: glUniformMatrix2fv,
+        GL_FLOAT_MAT3: glUniformMatrix3fv,
+        GL_FLOAT_MAT4: glUniformMatrix4fv,
     }
 
     GETTERS = {
@@ -92,7 +110,13 @@ class Uniform(object):
         self.index = index
         self.size, self.type, self.name = load_uniform_data(program_id, index)
         # unpack type constant
-        self.item_type, self.length = self.UNIFORM_TYPES[self.type]
+        if self.type in self.UNIFORM_TYPES:
+            self.item_type, self.length = self.UNIFORM_TYPES[self.type]
+            self.is_matrix = False
+        else:
+            self.item_type, self.length = self.UNIFORM_MATRIX_TYPES[self.type]
+            self.is_matrix = True
+
         # ctypes type to use
         self.ctype = self.item_type * self.length
         # setup correct gl functions to access
@@ -108,7 +132,16 @@ class Uniform(object):
         return params
 
     def set(self, *data):
+        assert not self.is_matrix, "set is only for non-matrix uniforms"
         if len(data) != self.length:
             raise UniformError("Uniform '%s' is of length %d, not %d" % (
                 self.name, self.length, len(data)))
         self._setter(self.index, *data)
+
+    def set_matrix(self, matrix):
+        # data should be a cffi array
+        assert self.is_matrix, "set_matrix only for matrix uniforms"
+        if len(matrix) != self.length:
+            raise UniformError("uniform '%s' is of length %d, not %d" % (
+                self.name, self.length, len(matrix)))
+        self._setter(self.index, 1, GL_FALSE, self.ctype(*matrix))

@@ -6,13 +6,27 @@ b) use texcoords/fragment shader to color edges (how to control thickness?)
 
 camera/perspective transform and controls
 
+per turtle z-buffer for ordering indepentent of shape buffer draw order
+
+drawing lines
+ - list of vertex pairs + color(s) added to new *vertex* buffer
+ - added per tick by engine as turtle moves
+ - draw as single glDrawArrays GL_LINE call, new vao
+ - not per turtle shape
+
+stamping
+ - added by turtle interface via engine to new buffer
+ - same turtle geometry/shaders, different turtle buffer/vao
+ - make a copy (freeze) of current turtle data into buffer
+ - need to track ownership so can be cleared
+ - draw with glDrawElementsInstanced
+
 
 textured turtle images
 
 load complex 3d mesh
 
+use transform feedback to buffer to calculate simulation tick
+
 defer turtle moving/removal until render, and do a whole array compaction, to
 perform better when multiple turtles are (re)moved in a frame
-
-per turtle z-buffer for ordering indepentent of shape buffer draw order
-

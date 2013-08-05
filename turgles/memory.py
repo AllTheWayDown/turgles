@@ -36,5 +36,9 @@ def to_pointer(ctype):
     #TODO support 32bit systems?
     return int(ffi.cast('long', ctype))
 
+
+def create_matrix():
+    return ffi.new('float[16]')
+
 # short cut
 sizeof = ffi.sizeof

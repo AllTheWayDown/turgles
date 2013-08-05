@@ -4,14 +4,14 @@
 
 #define TURTLE_DATA_SIZE 12
 
-void random_walk(float *x, float magnitude, float half_size, float lambda, float degrees)
+void random_walk(float *x, float magnitude, float half_w, float half_h, float degrees)
 
 {
     float *y = x + 1;
     float *angle = x + 4;
     float *ct = x + 6;
     float *st = x + 7;
-    if (fabs(*x) > half_size || fabs(*y) > half_size)
+    if (fabs(*x) > half_w || fabs(*y) > half_h)
     {
         *angle = fmod(*angle + 180.0, 360.0);
     }
@@ -29,15 +29,15 @@ void random_walk_all(
         float *turtles, 
         int num_turtles, 
         float magnitude, 
-        float half_size,
-        float lambda,
+        float half_w,
+        float half_h,
         float degrees
 )
 {
     int i;
     for (i = 0; i < num_turtles; ++i)
     {
-        random_walk(turtles + (i * TURTLE_DATA_SIZE), magnitude, half_size, lambda, degrees);
+        random_walk(turtles + (i * TURTLE_DATA_SIZE), magnitude, half_w, half_h, degrees);
     }
 }
 
