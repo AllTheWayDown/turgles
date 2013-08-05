@@ -116,7 +116,7 @@ class Renderer(object):
 
         self.set_view()
 
-    def set_perspective(self, near=0, far=2.0, fov=105.0):
+    def set_perspective(self, near=0, far=2.0, fov=45.0):
         scale = 1.0 / tan(radians(fov) / 2.0)
         diff = near - far
         scale = 1.0
