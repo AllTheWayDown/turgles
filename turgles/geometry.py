@@ -174,7 +174,7 @@ def convert_vec2_to_vec4(data):
     while True:
         yield next(it)  # x
         yield next(it)  # y
-        yield 0.0       # z
+        yield -1.0       # z
         yield 1.0       # w
 
 

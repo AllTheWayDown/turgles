@@ -84,25 +84,12 @@ class Renderer(object):
         glDepthFunc(GL_LEQUAL)
         glDepthRangef(0.0, 1.0)
 
-        step = 0.05
+        self.speed = 1
 
-        @self.window.event
-        def on_key_press(symbol, modifiers):
-            if symbol == key.LEFT:
-                self.view_matrix[12] += step
-            elif symbol == key.RIGHT:
-                self.view_matrix[12] -= step
-            elif symbol == key.UP:
-                self.view_matrix[13] += step
-            elif symbol == key.DOWN:
-                self.view_matrix[13] -= step
-            elif symbol == key.PLUS:
-                self.view_matrix[14] += step
-                print("plus", self.view_matrix[14])
-            elif symbol == key.MINUS:
-                self.view_matrix[14] -= step
-                print("minus", self.view_matrix[14])
-            self.set_view()
+        self.keys = key.KeyStateHandler()
+        self.window.push_handlers(self.keys)
+
+        pyglet.clock.schedule_interval(self.move_camera, 1/30)
 
         @self.window.event
         def on_resize(width, height):
@@ -111,20 +98,38 @@ class Renderer(object):
             self.set_perspective()
             return pyglet.event.EVENT_HANDLED
 
-    def set_perspective(self, near=0, far=10.0, fov=45.0):
+    def move_camera(self, dt):
+        if self.keys[key.UP]:
+            self.view_matrix[13] -= self.speed * dt
+        elif self.keys[key.DOWN]:
+            self.view_matrix[13] += self.speed * dt
+
+        if self.keys[key.LEFT]:
+            self.view_matrix[12] += self.speed * dt
+        elif self.keys[key.RIGHT]:
+            self.view_matrix[12] -= self.speed * dt
+
+        if self.keys[key.PAGEUP]:
+            self.view_matrix[14] += self.speed * dt
+        elif self.keys[key.PAGEDOWN]:
+            self.view_matrix[14] -= self.speed * dt
+
+        self.set_view()
+
+    def set_perspective(self, near=0, far=2.0, fov=105.0):
         scale = 1.0 / tan(radians(fov) / 2.0)
         diff = near - far
         scale = 1.0
         self.perspective_matrix[0] = scale / (self.width / self.height)
-        self.perspective_matrix[5] = scale  # / (self.width / self.height)
+        self.perspective_matrix[5] = scale
         self.perspective_matrix[10] = (far + near) / diff
         self.perspective_matrix[11] = -1.0
         self.perspective_matrix[14] = (2 * far * near) / diff
         self.program.bind()
         self.program.uniforms['projection'].set_matrix(
             self.perspective_matrix)
-        m = min(self.width, self.height) // 2
-        self.program.uniforms['world_scale'].set(m, m)
+        scale = min(self.width, self.height) // 2
+        self.program.uniforms['world_scale'].set(scale)
         self.program.unbind()
         glViewport(
             0, 0,

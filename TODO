@@ -5,6 +5,7 @@ a) redraw turtle vertices with GL_LINE_LOOP (simple but slow)
 b) use texcoords/fragment shader to color edges (how to control thickness?)
 
 camera/perspective transform and controls
+ - partially done, need to do rotation
 
 per turtle z-buffer for ordering indepentent of shape buffer draw order
 
