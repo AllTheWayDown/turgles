@@ -1,7 +1,7 @@
 world_width = 800.0
 world_height = 600.0
 turtle_size = 1.0
-num_turtles = 1000
+num_turtles = 100
 shape = 'turtle'
 
 # for random walk

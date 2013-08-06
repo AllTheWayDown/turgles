@@ -4,11 +4,13 @@ uniform mat4 projection;
 uniform mat4 view;
 
 attribute vec4 vertex;
+attribute vec4 edge;
 attribute vec4 turtle1; // x, y, scale x, scale y
 attribute vec4 turtle2; // degrees, speed, cos, sin
 attribute vec4 turtle_fill_color; // rgba
 
 varying vec4 out_turtle_color;
+varying vec3 out_edge;
 
 void main()
 {
@@ -27,4 +29,5 @@ void main()
     vec4 world_vertex = transform * vertex;
     gl_Position = world_vertex;
     out_turtle_color = turtle_fill_color;
+    out_edge = edge;
 }

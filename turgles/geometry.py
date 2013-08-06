@@ -1,3 +1,5 @@
+import itertools
+
 from turgles.memory import (create_vertex_buffer, create_index_buffer)
 
 # generated from shapes in turtle module
@@ -156,12 +158,22 @@ class TurtleGeometry(object):
 
     def __init__(self, scale, vertices, indices):
         self.scale = scale
+
         self.vertices = create_vertex_buffer(vertices)
         self.indices = create_index_buffer(indices)
-
-        self.indices_outline = create_index_buffer(
-            list(range(len(vertices)//4)))
         self.num_vertex = len(indices)
+
+        self.calculate_edges()
+
+    def calculate_edges(self):
+        edge_coords = itertools.cycle([(1, 0, 0), (0, 1, 0), (0, 0, 1)])
+        edges = []
+        for i in range(0, len(self.indices), 3):  # each triangle
+            for j in range(3):  # each vertex
+                v = self.indices[i + j] * 4
+                edges.extend(self.vertices[v:v+4])
+                edges.extend(next(edge_coords))
+        self.edges = create_vertex_buffer(edges)
 
     @classmethod
     def load_file(cls, path):

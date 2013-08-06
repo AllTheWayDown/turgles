@@ -12,7 +12,7 @@ from turgles.gl.api import (
     glGetAttribLocation,
     glGenVertexArrays,
     glBindVertexArray,
-    glDrawElementsInstanced,
+    glDrawArraysInstanced,
 )
 
 from turgles.gl.buffer import VertexBuffer, Buffer
@@ -30,6 +30,7 @@ class TurtleShapeVAO(object):
         self.program = program
         self.geometry = geometry
         self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
+        self.edge_attr = glGetAttribLocation(self.program.id, b"edge")
         self.turtle_attr1 = glGetAttribLocation(self.program.id, b"turtle1")
         self.turtle_attr2 = glGetAttribLocation(self.program.id, b"turtle2")
         self.turtle_attr3 = glGetAttribLocation(
@@ -44,15 +45,16 @@ class TurtleShapeVAO(object):
 
         # load/bind/configure vertex buffer
         self.vertex_buffer = VertexBuffer(GLfloat, GL_STATIC_DRAW)
-        self.vertex_buffer.load(geometry.vertices)
-        self.vertex_buffer.set(self.vertex_attr, 4)
+        self.vertex_buffer.load(geometry.edges)
+        self.vertex_buffer.set(self.vertex_attr, 4, stride=7*4, offset=0)
+        self.vertex_buffer.set(self.edge_attr, 3, stride=7*4, offset=4*4)
 
         # load/bind index buffer
-        self.index_buffer = Buffer(
-            GL_ELEMENT_ARRAY_BUFFER, GLushort, GL_STATIC_DRAW
-        )
-        self.index_buffer.load(geometry.indices)
-        self.index_buffer.bind()
+        #self.index_buffer = Buffer(
+        #    GL_ELEMENT_ARRAY_BUFFER, GLushort, GL_STATIC_DRAW
+        #)
+        #self.index_buffer.load(geometry.indices)
+        #self.index_buffer.bind()
 
         # turtle model buffer
         stride = TURTLE_DATA_SIZE * 4  # how many floats
@@ -75,11 +77,10 @@ class TurtleShapeVAO(object):
             turtle_data, num_turtles * TURTLE_DATA_SIZE * 4)
         self.program.uniforms['geometry_scale'].set(self.geometry.scale)
 
-        glDrawElementsInstanced(
+        glDrawArraysInstanced(
             GL_TRIANGLES,
-            self.geometry.num_vertex,
-            GL_UNSIGNED_SHORT,
             0,
+            len(self.geometry.edges) // 7,
             num_turtles
         )
 
