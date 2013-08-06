@@ -79,6 +79,7 @@ class VertexBuffer(Buffer):
 
     def set(self,
             index,
+            size,
             interpolate=GL_FALSE,
             stride=0,
             offset=0,
@@ -87,7 +88,7 @@ class VertexBuffer(Buffer):
         glEnableVertexAttribArray(index)
         glVertexAttribPointer(
             index,
-            self.element_size,
+            size,
             self.element_flag,
             interpolate,
             stride,

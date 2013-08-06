@@ -28,7 +28,6 @@ def create_index_buffer(init):
 
 def create_vertex_buffer(init):
     """vec4 array"""
-    assert len(init) % 4 == 0
     return ffi.new('float[]', init)
 
 

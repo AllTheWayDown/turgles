@@ -45,7 +45,7 @@ class TurtleShapeVAO(object):
         # load/bind/configure vertex buffer
         self.vertex_buffer = VertexBuffer(GLfloat, GL_STATIC_DRAW)
         self.vertex_buffer.load(geometry.vertices)
-        self.vertex_buffer.set(self.vertex_attr)
+        self.vertex_buffer.set(self.vertex_attr, 4)
 
         # load/bind index buffer
         self.index_buffer = Buffer(
@@ -58,11 +58,11 @@ class TurtleShapeVAO(object):
         stride = TURTLE_DATA_SIZE * 4  # how many floats
         self.turtle_buffer = VertexBuffer(GLfloat, GL_STREAM_DRAW)
         self.turtle_buffer.set(
-            self.turtle_attr1, stride=stride, offset=0, divisor=1)
+            self.turtle_attr1, 4, stride=stride, offset=0, divisor=1)
         self.turtle_buffer.set(
-            self.turtle_attr2, stride=stride, offset=16, divisor=1)
+            self.turtle_attr2, 4, stride=stride, offset=16, divisor=1)
         self.turtle_buffer.set(
-            self.turtle_attr3, stride=stride, offset=32, divisor=1)
+            self.turtle_attr3, 4, stride=stride, offset=32, divisor=1)
 
         # VAO now configured, so unbind
         glBindVertexArray(0)
