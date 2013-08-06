@@ -6,12 +6,15 @@ varying vec3 out_edge;
 float edgeFactor()
 {
     vec3 d = fwidth(out_edge);
-    vec3 a3 = smoothstep(vec3(0.0), d*1, out_edge);
+    vec3 a3 = smoothstep(vec3(0.0), d*0.95, out_edge);
     return min(min(a3.x, a3.y), a3.z);
 }
 
 void main()
 {
-    gl_FragColor.rgb = mix(vec3(0.0), out_turtle_color.rgb, edgeFactor());
-    gl_FragColor.a = 1.0;
+    float edge_dist = min(min(out_edge.x, out_edge.y), out_edge.z);
+    if (edge_dist < 0.15)
+        gl_FragColor = vec4(0, 0, 0, 1);
+    else
+        gl_FragColor = out_turtle_color;
 }

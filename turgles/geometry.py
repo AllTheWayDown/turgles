@@ -1,4 +1,4 @@
-import itertools
+from math import fabs
 
 from turgles.memory import (create_vertex_buffer, create_index_buffer)
 
@@ -6,7 +6,7 @@ from turgles.memory import (create_vertex_buffer, create_index_buffer)
 # normalised to -1.0 <-> 1.0 and rotated right by 90 degrees
 STANDARD_SHAPE_POLYGONS = {
     'turtle': {
-        'scale': 16.0,
+        'scale': 20.0,
         'vertex': (
             1.000000, 0.000000,
             0.875000, 0.125000,
@@ -57,6 +57,30 @@ STANDARD_SHAPE_POLYGONS = {
             18, 19, 20,
             18, 20, 21,
         ),
+        'exclude': (
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+            1, 1, 1,
+        ),
     },
     'square': {
         'scale': 10.0,
@@ -70,10 +94,15 @@ STANDARD_SHAPE_POLYGONS = {
             0, 1, 2,
             0, 2, 3
         ),
+        'exclude': (
+            0, 1, 0,
+            0, 0, 1,
+        )
     },
     'circle': {
         'scale': 10.0,
         'vertex': (
+            0.000000,  0.000000,
             0.000000, -1.000000,
             0.309000, -0.951000,
             0.588000, -0.809000,
@@ -96,24 +125,48 @@ STANDARD_SHAPE_POLYGONS = {
             -0.309000, -0.951000,
         ),
         'index': (
-            0, 1, 19,
-            19, 1, 2,
-            19, 2, 18,
-            18, 2, 3,
-            18, 3, 17,
-            17, 3, 4,
-            17, 4, 16,
-            16, 4, 5,
-            16, 5, 15,
-            15, 5, 6,
-            15, 6, 14,
-            14, 6, 7,
-            14, 7, 13,
-            13, 7, 8,
-            13, 8, 12,
-            12, 8, 9,
-            12, 9, 11,
-            11, 9, 10,
+            0,  1,  2,
+            0,  2,  3,
+            0,  3,  4,
+            0,  4,  5,
+            0,  5,  6,
+            0,  6,  7,
+            0,  7,  8,
+            0,  8,  9,
+            0,  9,  10,
+            0, 10,  11,
+            0, 11,  12,
+            0, 12,  13,
+            0, 13,  14,
+            0, 14,  15,
+            0, 15,  16,
+            0, 16,  17,
+            0, 17,  18,
+            0, 18,  19,
+            0, 19,  20,
+            0, 20,  1,
+        ),
+        'exclude': (
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
+            0, 1, 1,
         ),
     },
     'triangle': {
@@ -126,7 +179,7 @@ STANDARD_SHAPE_POLYGONS = {
         'index': (0, 1, 2)
     },
     'classic': {
-        'scale': 9.0,
+        'scale': 14.0,
         'vertex': (
             0.000000, 0.000000,
             -1.000000, 0.555556,
@@ -137,6 +190,10 @@ STANDARD_SHAPE_POLYGONS = {
             0, 1, 2,
             0, 2, 3,
         ),
+        'exclude': (
+            0, 1, 0,
+            0, 0, 1,
+        )
     },
     'arrow': {
         'scale': 10.0,
@@ -156,32 +213,59 @@ class TurtleGeometry(object):
     Uses cffi to create c-arrays for storing vertices, indexes, and normals.
     """
 
-    def __init__(self, scale, vertices, indices):
+    def __init__(self, scale, vertices, indices, exclude):
         self.scale = scale
 
         self.vertices = create_vertex_buffer(vertices)
         self.indices = create_index_buffer(indices)
         self.num_vertex = len(indices)
 
-        self.edges = self.calculate_edges()
+        self.edges = self.calculate_edges(exclude)
 
-    def calculate_edges(self):
+    def calculate_edges(self, excludes):
         """Builds a vertex list adding barycentric coordinates to each vertex.
 
         Used to draw turtle borders efficiently, specialised to draw only the
-        outer edges. See below for references.
+        some edges. See below for references.
 
         http://codeflow.org/entries/2012/aug/02/easy-wireframe-display-with-barycentric-coordinates/  # NOQA
         http://stackoverflow.com/questions/18035719/drawing-a-border-on-a-2d-polygon-with-a-fragment-shader  # NOQA
+        http://strattonbrazil.blogspot.co.uk/2011/09/single-pass-wireframe-rendering_11.html  # NOQA
         """
-        edge_coords = itertools.cycle([(1, 0, 0), (0, 1, 0), (0, 0, 1)])
         edges = []
+        MEW = 100.0
+        if excludes is None:
+            excludes = [0] * len(self.indices)
         for i in range(0, len(self.indices), 3):  # each triangle
-            for j in range(3):  # each vertex
-                v = self.indices[i + j] * 4
-                edges.extend(self.vertices[v:v+4])
-                edges.extend(next(edge_coords))
+            i0 = self.indices[i+0] * 4
+            i1 = self.indices[i+1] * 4
+            i2 = self.indices[i+2] * 4
+            e0 = excludes[i+0]
+            e1 = excludes[i+1]
+            e2 = excludes[i+2]
+            p0 = self.vertices[i0:i0+4]
+            p1 = self.vertices[i1:i1+4]
+            p2 = self.vertices[i2:i2+4]
+            v0 = self.vec2minus(p2, p1)
+            v1 = self.vec2minus(p2, p0)
+            v2 = self.vec2minus(p1, p0)
+            area = fabs(v1[0]*v2[1] - v1[1] * v2[0])
+            c0 = (area/self.magnitude(v0), e1 * MEW, e2 * MEW)
+            c1 = (e0 * MEW, area/self.magnitude(v1), e2 * MEW)
+            c2 = (e0 * MEW, e1 * MEW, area/self.magnitude(v2))
+            edges.extend(p0)
+            edges.extend(c0)
+            edges.extend(p1)
+            edges.extend(c1)
+            edges.extend(p2)
+            edges.extend(c2)
         return create_vertex_buffer(edges)
+
+    def vec2minus(self, a, b):
+        return a[0] - b[0], a[1] - b[1]
+
+    def magnitude(self, v):
+        return (v[0]**2 + v[1]**2) ** 0.5
 
     @classmethod
     def load_file(cls, path):
@@ -205,5 +289,6 @@ for name, data in STANDARD_SHAPE_POLYGONS.items():
         data['scale'],
         list(convert_vec2_to_vec4(data['vertex'])),
         data['index'],
+        data.get('exclude'),
     )
     SHAPES[name] = geom
