@@ -37,20 +37,21 @@ def gen_world(n):
         yield 1.0       # alpha
 
 
-half_turtles = num_turtles // 2
 renderer = Renderer(
     world_width,
     world_height,
-    buffer_size=half_turtles,
+    buffer_size=num_turtles//6,
     samples=16,
 )
 
 
-for i in range(half_turtles):
+for i in range(num_turtles//6):
     renderer.create_turtle_data('turtle', list(gen_world(1)))
-
-for i in range(half_turtles):
     renderer.create_turtle_data('classic', list(gen_world(1)))
+    renderer.create_turtle_data('triangle', list(gen_world(1)))
+    renderer.create_turtle_data('circle', list(gen_world(1)))
+    renderer.create_turtle_data('square', list(gen_world(1)))
+    renderer.create_turtle_data('arrow', list(gen_world(1)))
 
 
 @renderer.window.event

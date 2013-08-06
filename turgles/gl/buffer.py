@@ -70,7 +70,7 @@ class VertexBuffer(Buffer):
     """A VBO object to store vertex/model data.
 
     Specialisation of Buffer for attribute data, provides convient way to use
-    glVertexAttribPointer, via set().
+    glVertexAttribPointer, via set() and partition().
     """
 
     def __init__(self, element_type, draw_type):
@@ -96,3 +96,10 @@ class VertexBuffer(Buffer):
         )
         if divisor is not None:
             glVertexAttribDivisor(index, divisor)
+
+    def partition(self, args, **kwargs):
+        kwargs['stride'] = sum(a[1] for a in args) * self.element_size
+        offset = 0
+        for attr, size in args:
+            self.set(attr, size, offset=offset, **kwargs)
+            offset += size * self.element_size

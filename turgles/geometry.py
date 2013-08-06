@@ -163,9 +163,17 @@ class TurtleGeometry(object):
         self.indices = create_index_buffer(indices)
         self.num_vertex = len(indices)
 
-        self.calculate_edges()
+        self.edges = self.calculate_edges()
 
     def calculate_edges(self):
+        """Builds a vertex list adding barycentric coordinates to each vertex.
+
+        Used to draw turtle borders efficiently, specialised to draw only the
+        outer edges. See below for references.
+
+        http://codeflow.org/entries/2012/aug/02/easy-wireframe-display-with-barycentric-coordinates/  # NOQA
+        http://stackoverflow.com/questions/18035719/drawing-a-border-on-a-2d-polygon-with-a-fragment-shader  # NOQA
+        """
         edge_coords = itertools.cycle([(1, 0, 0), (0, 1, 0), (0, 0, 1)])
         edges = []
         for i in range(0, len(self.indices), 3):  # each triangle
@@ -173,7 +181,7 @@ class TurtleGeometry(object):
                 v = self.indices[i + j] * 4
                 edges.extend(self.vertices[v:v+4])
                 edges.extend(next(edge_coords))
-        self.edges = create_vertex_buffer(edges)
+        return create_vertex_buffer(edges)
 
     @classmethod
     def load_file(cls, path):
