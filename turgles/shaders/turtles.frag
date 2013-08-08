@@ -13,8 +13,7 @@ float edgeFactor()
 void main()
 {
     float edge_dist = min(min(out_edge.x, out_edge.y), out_edge.z);
-    if (edge_dist < 0.15)
-        gl_FragColor = vec4(0, 0, 0, 1);
-    else
-        gl_FragColor = out_turtle_color;
+    float I = exp2(-2.0 * edge_dist * edge_dist);
+    gl_FragColor.rgb = I * vec3(0,0,0) + (1.0 - I) * out_turtle_color;
+    gl_FragColor.a = 1.0;
 }
