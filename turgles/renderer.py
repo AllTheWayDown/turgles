@@ -116,15 +116,19 @@ class Renderer(object):
 
         self.set_view()
 
-    def set_perspective(self, near=0, far=2.0, fov=45.0):
+    def set_perspective(self, near=0, far=3, fov=90.0):
         scale = 1.0 / tan(radians(fov) / 2.0)
-        diff = near - far
-        scale = 1.0
         self.perspective_matrix[0] = scale / (self.width / self.height)
         self.perspective_matrix[5] = scale
-        self.perspective_matrix[10] = (far + near) / diff
+        self.perspective_matrix[10] = -(far + near) / (far - near)
         self.perspective_matrix[11] = -1.0
-        self.perspective_matrix[14] = (2 * far * near) / diff
+        self.perspective_matrix[14] = (-2 * far * near) / (far - near)
+        # ortho, doesn't work
+        #self.perspective_matrix[0] = 2.0/self.width
+        #self.perspective_matrix[5] = 2.0/self.height
+        #self.perspective_matrix[10] = 1.0/(far - near)
+        #self.perspective_matrix[14] = -near/(far - near)
+        #self.perspective_matrix[15] = 1.0
         self.program.bind()
         self.program.uniforms['projection'].set_matrix(
             self.perspective_matrix)

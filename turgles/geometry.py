@@ -33,6 +33,9 @@ STANDARD_SHAPE_POLYGONS = {
             0.625000, -0.062500,
             0.875000, -0.125000,
         ),
+
+
+
         'index': (
             0, 1, 23,
             1, 22, 23,
@@ -57,29 +60,35 @@ STANDARD_SHAPE_POLYGONS = {
             18, 19, 20,
             18, 20, 21,
         ),
+
+
+
+
+
+
         'exclude': (
+            1, 0, 0,
+            0, 1, 1,
+            1, 0, 1,
+            1, 1, 0,
+            0, 1, 1,
+            1, 1, 0,
+            0, 0, 1,
+            0, 1, 1,
+            1, 1, 1,
+            1, 1, 0,
+            1, 1, 1,
+            1, 1, 0,
+            0, 1, 0,
             1, 1, 1,
             1, 1, 1,
+            0, 1, 0,
+            0, 1, 0,
+            0, 1, 1,
             1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
+            0, 1, 0,
+            0, 1, 0,
+            0, 1, 1,
         ),
     },
     'square': {
@@ -228,8 +237,8 @@ class TurtleGeometry(object):
         Used to draw turtle borders efficiently, specialised to draw only the
         some edges. See below for references.
 
-        http://codeflow.org/entries/2012/aug/02/easy-wireframe-display-with-barycentric-coordinates/  # NOQA
         http://stackoverflow.com/questions/18035719/drawing-a-border-on-a-2d-polygon-with-a-fragment-shader  # NOQA
+        http://codeflow.org/entries/2012/aug/02/easy-wireframe-display-with-barycentric-coordinates/  # NOQA
         http://strattonbrazil.blogspot.co.uk/2011/09/single-pass-wireframe-rendering_11.html  # NOQA
         """
         edges = []

@@ -29,5 +29,5 @@ void main()
     vec4 world_vertex = transform * vertex;
     gl_Position = world_vertex;
     out_turtle_color = turtle_fill_color;
-    out_edge = edge * (world_scale/geometry_scale) * 0.2; 
+    out_edge = edge * world_scale / geometry_scale / world_vertex.w * 0.5;
 }
