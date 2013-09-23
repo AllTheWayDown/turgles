@@ -75,7 +75,6 @@ class TurtleShapeVAO(object):
 
         self.turtle_buffer.load(
             turtle_data, num_turtles * TURTLE_DATA_SIZE * 4)
-        self.program.uniforms['geometry_scale'].set(self.geometry.scale)
 
         glDrawArraysInstanced(
             GL_TRIANGLES,

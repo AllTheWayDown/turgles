@@ -33,9 +33,6 @@ STANDARD_SHAPE_POLYGONS = {
             0.625000, -0.062500,
             0.875000, -0.125000,
         ),
-
-
-
         'index': (
             0, 1, 23,
             1, 22, 23,
@@ -60,12 +57,6 @@ STANDARD_SHAPE_POLYGONS = {
             18, 19, 20,
             18, 20, 21,
         ),
-
-
-
-
-
-
         'exclude': (
             1, 0, 0,
             0, 1, 1,
@@ -244,7 +235,7 @@ class TurtleGeometry(object):
         edges = []
         MEW = 100.0
         if excludes is None:
-            excludes = [0] * len(self.indices)
+            excludes = [0] * len(self.indices) * 2
         for i in range(0, len(self.indices), 3):  # each triangle
             i0 = self.indices[i+0] * 4
             i1 = self.indices[i+1] * 4
@@ -281,12 +272,12 @@ class TurtleGeometry(object):
         """Loads from file"""
 
 
-def convert_vec2_to_vec4(data):
+def convert_vec2_to_vec4(scale, data):
     """transforms an array of 2d coords into 4d"""
     it = iter(data)
     while True:
-        yield next(it)  # x
-        yield next(it)  # y
+        yield next(it) * scale  # x
+        yield next(it) * scale  # y
         yield 0.0       # z
         yield 1.0       # w
 
@@ -296,7 +287,7 @@ SHAPES = {}
 for name, data in STANDARD_SHAPE_POLYGONS.items():
     geom = TurtleGeometry(
         data['scale'],
-        list(convert_vec2_to_vec4(data['vertex'])),
+        list(convert_vec2_to_vec4(data['scale'], data['vertex'])),
         data['index'],
         data.get('exclude'),
     )

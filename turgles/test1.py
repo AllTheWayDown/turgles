@@ -1,5 +1,6 @@
 from __future__ import division, print_function, absolute_import
 import logging
+import sys
 
 logging.basicConfig()
 
@@ -7,6 +8,7 @@ from random import random
 from math import radians, cos, sin
 import pyglet
 
+#from turgles.es_renderer import ES2Renderer as Renderer
 from turgles.renderer import Renderer
 from turgles.util import measure
 
@@ -17,6 +19,11 @@ from turgles.config import (
     turtle_size,
 )
 from turgles.random_walk import fast_update
+
+if len(sys.argv) > 1:
+    num_turtles = int(sys.argv[1])
+if len(sys.argv) > 2:
+    turtle_size = float(sys.argv[2])
 
 
 def gen_world(n):
@@ -37,21 +44,28 @@ def gen_world(n):
         yield 1.0       # alpha
 
 
+shapes = [
+    'turtle',
+    'classic',
+    'square',
+    'circle',
+    'triangle',
+    'arrow',
+]
+
+n = num_turtles // len(shapes)
+
 renderer = Renderer(
     world_width,
     world_height,
-    buffer_size=num_turtles//6,
+    buffer_size=n,
     samples=16,
 )
 
 
-for i in range(num_turtles//6):
-    renderer.create_turtle_data('turtle', list(gen_world(1)))
-    renderer.create_turtle_data('classic', list(gen_world(1)))
-    renderer.create_turtle_data('triangle', list(gen_world(1)))
-    renderer.create_turtle_data('circle', list(gen_world(1)))
-    renderer.create_turtle_data('square', list(gen_world(1)))
-    renderer.create_turtle_data('arrow', list(gen_world(1)))
+for shape in shapes:
+    for i in range(n):
+        renderer.create_turtle_data(shape, list(gen_world(1)))
 
 
 @renderer.window.event
@@ -76,7 +90,8 @@ def idle():
         if redraw_all or (window._legacy_invalid and window.invalid):
             with measure("full draw"):
                 window.switch_to()
-                window.dispatch_event('on_draw')
+                with measure("event"):
+                    window.dispatch_event('on_draw')
                 with measure("flip"):
                     window.flip()
                 window._legacy_invalid = False

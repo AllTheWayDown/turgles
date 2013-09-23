@@ -22,7 +22,7 @@ from turgles.gl.api import (
 )
 from turgles.gl.program import Program
 from turgles.render.turtles import TurtleShapeVAO
-
+from turgles.util import measure
 
 def identity():
     return [1, 0, 0, 0,
@@ -70,9 +70,9 @@ class Renderer(object):
         if samples is not None:
             kwargs['sample_buffers'] = 1
             kwargs['samples'] = samples
-            #major_version=3,
-            #minor_version=1,
-            #forward_compatible=True,
+        kwargs['major_version'] = 3
+        kwargs['minor_version'] = 1
+        #kwargs['forward_compatible'] = True
         self.config = pyglet.gl.Config(**kwargs)
         self.window = pyglet.window.Window(
             config=self.config,
@@ -165,10 +165,11 @@ class Renderer(object):
     # ninjaturtle engine interface
     def render(self, flip=True):
         self.window.clear()
-        for buffer in self.manager.buffers.values():
-            if buffer.count > 0:
-                vao = self.vao[buffer.shape]
-                vao.render(buffer.data, buffer.count)
+        with measure('shape loop'):
+            for buffer in self.manager.buffers.values():
+                if buffer.count > 0:
+                    vao = self.vao[buffer.shape]
+                    vao.render(buffer.data, buffer.count)
         if flip:
             self.window.flip()
 
