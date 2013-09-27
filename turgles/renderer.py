@@ -13,16 +13,20 @@ from turgles.gl.api import (
     glDepthFunc,
     glDepthMask,
     glDepthRangef,
+    glGetIntegerv,
     GLsizei,
     GL_DEPTH_TEST,
     glEnable,
     GL_LEQUAL,
     GL_TRUE,
     glViewport,
+    GLint,
+    GL_MAX_SAMPLES,
 )
 from turgles.gl.program import Program
 from turgles.render.turtles import TurtleShapeVAO
 from turgles.util import measure
+
 
 def identity():
     return [1, 0, 0, 0,
@@ -67,12 +71,13 @@ class Renderer(object):
 
     def create_window(self, width, height, samples):
         kwargs = dict(double_buffer=True)
-        if samples is not None:
+        max_samples = GLint()
+        glGetIntegerv(GL_MAX_SAMPLES, max_samples)
+        print(max_samples.value)
+        if max_samples.value > 0:
             kwargs['sample_buffers'] = 1
-            kwargs['samples'] = samples
-        kwargs['major_version'] = 3
-        kwargs['minor_version'] = 1
-        #kwargs['forward_compatible'] = True
+            kwargs['samples'] = min(max_samples.value, 16)
+            print("Setting antialiasing to %s" % kwargs['samples'])
         self.config = pyglet.gl.Config(**kwargs)
         self.window = pyglet.window.Window(
             config=self.config,

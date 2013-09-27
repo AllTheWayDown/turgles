@@ -36,6 +36,7 @@ class ESTurtleShapeVAO(object):
 
         self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
 
+        # TODO: remove use of vao's, as not in ES2!
         # create VAO to store Vertex attribute state for later
         self.vao = GLuint()
         glGenVertexArrays(1, self.vao)

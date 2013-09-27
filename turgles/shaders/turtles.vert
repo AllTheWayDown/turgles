@@ -1,3 +1,4 @@
+#version 120
 uniform float world_scale;
 //uniform float geometry_scale;
 uniform mat4 projection;
