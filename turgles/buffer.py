@@ -82,15 +82,10 @@ class TurtleBuffer(object):
 
 class BufferManager(object):
 
-    TURTLE_ID = itertools.count()
-
     def __init__(self, size):
         self.size = size
         self.buffers = {}
         self.id_to_shape = {}
-
-    def get_id(self):
-        return next(self.TURTLE_ID)
 
     def get_buffer(self, shape):
         if shape in self.buffers:
@@ -100,14 +95,14 @@ class BufferManager(object):
         self.buffers[shape] = buffer
         return buffer
 
-    def create_turtle(self, shape, init=None):
-        """Public api to ninjaturtle"""
-        id = self.get_id()
-        data = self._create_turtle(shape, id, init)
+    def create_turtle(self, id, shape, init):
+        """Create a slice of memory for turtle data storage"""
+        assert id not in self.id_to_shape
+        data = self._create_turtle(id, shape, init)
         self.id_to_shape[id] = shape
-        return id, data
+        return data
 
-    def _create_turtle(self, shape, id, init=None):
+    def _create_turtle(self, id, shape, init):
         buffer = self.get_buffer(shape)
         data = buffer.new(id, init)
         return data
@@ -117,7 +112,7 @@ class BufferManager(object):
         old_shape = self.id_to_shape[id]
         old_buffer = self.get_buffer(old_shape)
         data = old_buffer.get(id)
-        new_data = self._create_turtle(new_shape, id, data)
+        new_data = self._create_turtle(id, new_shape, data)
         old_buffer.remove(id)
         self.id_to_shape[id] = new_shape
         return new_data

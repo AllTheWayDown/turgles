@@ -8,6 +8,7 @@ from pyglet.window import key
 
 from turgles.buffer import BufferManager
 from turgles.geometry import SHAPES
+from turgles.turgle import Turgle
 from turgles.gl.api import (
     glClearColor,
     glDepthFunc,
@@ -25,7 +26,6 @@ from turgles.gl.api import (
 )
 from turgles.gl.program import Program
 from turgles.render.turtles import TurtleShapeVAO
-from turgles.util import measure
 
 
 def identity():
@@ -73,7 +73,6 @@ class Renderer(object):
         kwargs = dict(double_buffer=True)
         max_samples = GLint()
         glGetIntegerv(GL_MAX_SAMPLES, max_samples)
-        print(max_samples.value)
         if max_samples.value > 0:
             kwargs['sample_buffers'] = 1
             kwargs['samples'] = min(max_samples.value, 16)
@@ -170,22 +169,18 @@ class Renderer(object):
     # ninjaturtle engine interface
     def render(self, flip=True):
         self.window.clear()
-        with measure('shape loop'):
-            for buffer in self.manager.buffers.values():
-                if buffer.count > 0:
-                    vao = self.vao[buffer.shape]
-                    vao.render(buffer.data, buffer.count)
+        for buffer in self.manager.buffers.values():
+            if buffer.count > 0:
+                vao = self.vao[buffer.shape]
+                vao.render(buffer.data, buffer.count)
         if flip:
             self.window.flip()
 
     # ninjaturtle engine interface
-    def create_turtle_data(self, shape, init=None):
-        return self.manager.create_turtle(shape, init)
+    def create_turtle(self, model, shape='classic'):
+        model.backend = Turgle(self, model)
+        model.data = self.manager.create_turtle(model.id, shape, model.data)
 
     # ninjaturtle engine interface
     def destroy_turtle_data(self, id):
         self.manager.destroy_turtle(id)
-
-    # ninjaturtle engine interface
-    def set_shape(self, id, shape):
-        return self.manager.set_shape(id, shape)

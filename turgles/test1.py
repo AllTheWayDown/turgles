@@ -63,9 +63,17 @@ renderer = Renderer(
 )
 
 
+class Model(object):
+    pass
+
+ID = 0
 for shape in shapes:
     for i in range(n):
-        renderer.create_turtle_data(shape, list(gen_world(1)))
+        model = Model()
+        model.id = ID
+        model.data = list(gen_world(1))
+        renderer.create_turtle(model, shape)
+        ID += 1
 
 
 @renderer.window.event

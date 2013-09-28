@@ -148,11 +148,6 @@ class TurtleBufferTestCase(TestCase):
 
 class BufferManagerTestCase(TestCase):
 
-    def setUp(self):
-        super(BufferManagerTestCase, self).setUp()
-        # reset id
-        BufferManager.TURTLE_ID = itertools.count()
-
     def test_get_buffer(self):
         manager = BufferManager(4)
         self.assertEqual(len(manager.buffers), 0)
@@ -166,7 +161,8 @@ class BufferManagerTestCase(TestCase):
 
     def test_create_turtle(self):
         manager = BufferManager(4)
-        id, data = manager.create_turtle('classic')
+        id = 0
+        data = manager.create_turtle(id, 'classic', ZEROS)
         self.assertEqual(id, 0)
         self.assertEqual(list(data), ZEROS)
         self.assertEqual(len(manager.buffers), 1)
@@ -175,7 +171,8 @@ class BufferManagerTestCase(TestCase):
 
     def test_set_shape(self):
         manager = BufferManager(4)
-        id, data = manager.create_turtle('classic', ONES)
+        id = 0
+        data = manager.create_turtle(id, 'classic', ONES)
         self.assertEqual(list(data), ONES)
         self.assertEqual(len(manager.buffers), 1)
         self.assertIn('classic', manager.buffers)
@@ -187,7 +184,8 @@ class BufferManagerTestCase(TestCase):
 
     def test_destroy_turtle(self):
         manager = BufferManager(4)
-        id, data = manager.create_turtle('classic', ONES)
+        id = 0
+        data = manager.create_turtle(id, 'classic', ONES)
         self.assertEqual(list(data), ONES)
         self.assertEqual(manager.buffers['classic'].count, 1)
         manager.destroy_turtle(id)
