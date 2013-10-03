@@ -9,13 +9,12 @@ from turgles.gl.api import (
     GL_STATIC_DRAW,
     GL_TRIANGLES,
     GL_UNSIGNED_SHORT,
-    GLuint,
     GLushort,
     GLfloat,
     glGetAttribLocation,
-    glGenVertexArrays,
-    glBindVertexArray,
-    glDrawElements,
+    glDrawArrays,
+    glGetProgramiv, GLint,
+    GL_ACTIVE_ATTRIBUTES,
 )
 from turgles.renderer import Renderer
 from turgles.gl.buffer import VertexBuffer, Buffer
@@ -35,25 +34,32 @@ class ESTurtleShapeRenderer(object):
         self.geometry = geometry
 
         self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
+        self.edge_attr = glGetAttribLocation(self.program.id, b"edge")
+        count = GLint(0)
+        glGetProgramiv(self.program.id, GL_ACTIVE_ATTRIBUTES, count)
 
         # load/bind/configure vertex buffer
         self.vertex_buffer = VertexBuffer(GLfloat, GL_STATIC_DRAW)
-        self.vertex_buffer.load(geometry.vertices)
-        self.vertex_buffer.set(self.vertex_attr, 4)
+        self.vertex_buffer.load(geometry.edges)
+        self.vertex_buffer.partition(
+            [(self.vertex_attr, 4), (self.edge_attr, 3)]
+        )
 
         # load/bind index buffer
-        self.index_buffer = Buffer(
-            GL_ELEMENT_ARRAY_BUFFER, GLushort, GL_STATIC_DRAW
-        )
-        self.index_buffer.load(geometry.indices)
-        self.index_buffer.bind()
+        #self.index_buffer = Buffer(
+        #    GL_ELEMENT_ARRAY_BUFFER, GLushort, GL_STATIC_DRAW
+        #)
+        #self.index_buffer.load(geometry.indices)
+        #self.index_buffer.bind()
 
     def render(self, turtle_data, num_turtles):
         self.program.bind()
 
         # no VAOs so have to set manually
-        self.vertex_buffer.set(self.vertex_attr, 4)
-        self.index_buffer.bind()
+        self.vertex_buffer.partition(
+            [(self.vertex_attr, 4), (self.edge_attr, 3)]
+        )
+        #self.index_buffer.bind()
 
         a = self.program.uniforms['turtle1']
         b = self.program.uniforms['turtle2']
@@ -67,15 +73,14 @@ class ESTurtleShapeRenderer(object):
                     c.set(*tuple(turtle_data[i+8:i+12]))
 
                 with measure('draw'):
-                    glDrawElements(
+                    glDrawArrays(
                         GL_TRIANGLES,
-                        self.geometry.num_vertex,
-                        GL_UNSIGNED_SHORT,
                         0,
+                        len(self.geometry.edges) // 7,
                     )
 
         self.vertex_buffer.unbind()
-        self.index_buffer.unbind()
+        #self.index_buffer.unbind()
         self.program.unbind()
 
 
@@ -84,7 +89,7 @@ class ES2Renderer(Renderer):
     vertex_shader = pkg_resources.resource_string(
         'turgles', 'shaders/turtles_es.vert').decode('utf8')
     fragment_shader = pkg_resources.resource_string(
-        'turgles', 'shaders/turtles_es.frag').decode('utf8')
+        'turgles', 'shaders/turtles.frag').decode('utf8')
 
     def setup_vaos(self):
         self.program.bind()
