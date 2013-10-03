@@ -23,10 +23,10 @@ from turgles.memory import TURTLE_DATA_SIZE
 from turgles.util import measure
 
 
-class ESTurtleShapeVAO(object):
-    """A VAO for rendering mutliple versions of a specific turtle shape.
+class ESTurtleShapeRenderer(object):
+    """A Renderer for rendering mutliple versions of a specific turtle shape.
 
-    Creates VAO/vertex/index/model arrays, and can render them given turtle
+    Creates vertex/index/model arrays, and can render them given turtle
     data."""
 
     def __init__(self, name, program, geometry):
@@ -35,14 +35,6 @@ class ESTurtleShapeVAO(object):
         self.geometry = geometry
 
         self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
-
-        # TODO: remove use of vao's, as not in ES2!
-        # create VAO to store Vertex attribute state for later
-        self.vao = GLuint()
-        glGenVertexArrays(1, self.vao)
-
-        # bind VAO to record array setup/state
-        glBindVertexArray(self.vao)
 
         # load/bind/configure vertex buffer
         self.vertex_buffer = VertexBuffer(GLfloat, GL_STATIC_DRAW)
@@ -56,12 +48,12 @@ class ESTurtleShapeVAO(object):
         self.index_buffer.load(geometry.indices)
         self.index_buffer.bind()
 
-        # VAO now configured, so unbind
-        glBindVertexArray(0)
-
     def render(self, turtle_data, num_turtles):
         self.program.bind()
-        glBindVertexArray(self.vao)
+
+        # no VAOs so have to set manually
+        self.vertex_buffer.set(self.vertex_attr, 4)
+        self.index_buffer.bind()
 
         a = self.program.uniforms['turtle1']
         b = self.program.uniforms['turtle2']
@@ -82,7 +74,8 @@ class ESTurtleShapeVAO(object):
                         0,
                     )
 
-        glBindVertexArray(0)
+        self.vertex_buffer.unbind()
+        self.index_buffer.unbind()
         self.program.unbind()
 
 
@@ -97,4 +90,4 @@ class ES2Renderer(Renderer):
         self.program.bind()
         self.vao = {}
         for shape, geom in SHAPES.items():
-            self.vao[shape] = ESTurtleShapeVAO(shape, self.program, geom)
+            self.vao[shape] = ESTurtleShapeRenderer(shape, self.program, geom)
