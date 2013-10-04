@@ -20,14 +20,14 @@ from turgles.gl.api import (
     GLsizei,
     GLenum,
     GLfloat,
-    glUniform1f,
-    glUniform2f,
-    glUniform3f,
-    glUniform4f,
-    glUniform1i,
-    glUniform2i,
-    glUniform3i,
-    glUniform4i,
+    glUniform1f, glUniform1fv,
+    glUniform2f, glUniform2fv,
+    glUniform3f, glUniform3fv,
+    glUniform4f, glUniform4fv,
+    glUniform1i, glUniform1iv,
+    glUniform2i, glUniform2iv,
+    glUniform3i, glUniform3iv,
+    glUniform4i, glUniform4iv,
     glUniformMatrix2fv,
     glUniformMatrix3fv,
     glUniformMatrix4fv,
@@ -35,6 +35,8 @@ from turgles.gl.api import (
     glGetUniformiv,
     glGetActiveUniform,
     glGetActiveAttrib,
+
+    glGetUniformLocation,
 )
 
 
@@ -76,9 +78,6 @@ class Uniform(object):
         GL_INT_VEC2: (GLint, 2),
         GL_INT_VEC3: (GLint, 3),
         GL_INT_VEC4: (GLint, 4),
-    }
-
-    UNIFORM_MATRIX_TYPES = {
         GL_FLOAT_MAT2: (GLfloat, 4),
         GL_FLOAT_MAT3: (GLfloat, 9),
         GL_FLOAT_MAT4: (GLfloat, 16),
@@ -94,7 +93,17 @@ class Uniform(object):
         GL_INT_VEC2: glUniform2i,
         GL_INT_VEC3: glUniform3i,
         GL_INT_VEC4: glUniform4i,
-        # v setters
+    }
+
+    VSETTERS = {
+        GL_FLOAT: glUniform1fv,
+        GL_FLOAT_VEC2: glUniform2fv,
+        GL_FLOAT_VEC3: glUniform3fv,
+        GL_FLOAT_VEC4: glUniform4fv,
+        GL_INT: glUniform1iv,
+        GL_INT_VEC2: glUniform2iv,
+        GL_INT_VEC3: glUniform3iv,
+        GL_INT_VEC4: glUniform4iv,
         GL_FLOAT_MAT2: glUniformMatrix2fv,
         GL_FLOAT_MAT3: glUniformMatrix3fv,
         GL_FLOAT_MAT4: glUniformMatrix4fv,
@@ -109,39 +118,44 @@ class Uniform(object):
         self.program_id = program_id
         self.index = index
         self.size, self.type, self.name = load_uniform_data(program_id, index)
+        self.location = glGetUniformLocation(
+            program_id, self.name.encode('utf8'))
         # unpack type constant
         if self.type in self.UNIFORM_TYPES:
             self.item_type, self.length = self.UNIFORM_TYPES[self.type]
-            self.is_matrix = False
         else:
             self.item_type, self.length = self.UNIFORM_MATRIX_TYPES[self.type]
-            self.is_matrix = True
 
         # ctypes type to use
         self.ctype = self.item_type * self.length
         # setup correct gl functions to access
         self._getter = self.GETTERS[self.item_type]
-        self._setter = self.SETTERS[self.type]
+        self._setter = self.SETTERS.get(self.type, None)
+        self._setterv = self.VSETTERS.get(self.type)
 
     def __eq__(self, other):
         return self.index == other.index
 
     def get(self):
         params = self.ctype(*([0.0] * self.length))
-        self._getter(self.program_id, self.index, params)
+        self._getter(self.program_id, self.location, params)
         return params
 
     def set(self, *data):
-        assert not self.is_matrix, "set is only for non-matrix uniforms"
-        if len(data) != self.length:
-            raise UniformError("Uniform '%s' is of length %d, not %d" % (
-                self.name, self.length, len(data)))
-        self._setter(self.index, *data)
-
-    def set_matrix(self, matrix):
-        # data should be a cffi array
-        assert self.is_matrix, "set_matrix only for matrix uniforms"
-        if len(matrix) != self.length:
-            raise UniformError("uniform '%s' is of length %d, not %d" % (
-                self.name, self.length, len(matrix)))
-        self._setter(self.index, 1, GL_FALSE, self.ctype(*matrix))
+        n = len(data)
+        assert data
+        if n > 1 or self.length == 1:
+            # use non-array setter
+            if n != self.length:
+                raise UniformError("Uniform '%s' is of length %d, not %d" % (
+                    self.name, self.length, len(data)))
+            self._setter(self.location, *data)
+        else:
+            # use array based setter
+            data = data[0]
+            if len(data) != self.length * self.size:
+                raise UniformError("uniform '%s' is of length %d, not %d" % (
+                    self.name, self.length, len(data)))
+            self._setterv(
+                self.location, self.size, GL_FALSE, self.ctype(*data)
+            )

@@ -88,6 +88,9 @@ class Program:
             uniform = Uniform(self.id, index)
             self.uniforms[uniform.name] = uniform
 
+        #for v in self.uniforms.values():
+        #    print(v.name, v.size, v.length)
+
         self.unbind()
 
     def create_shader(self, src, type):

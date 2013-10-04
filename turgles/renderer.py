@@ -134,7 +134,7 @@ class Renderer(object):
         #self.perspective_matrix[14] = -near/(far - near)
         #self.perspective_matrix[15] = 1.0
         self.program.bind()
-        self.program.uniforms['projection'].set_matrix(
+        self.program.uniforms['projection'].set(
             self.perspective_matrix)
         scale = min(self.width, self.height) // 2
         self.program.uniforms['world_scale'].set(scale)
@@ -147,7 +147,7 @@ class Renderer(object):
 
     def set_view(self):
         self.program.bind()
-        self.program.uniforms['view'].set_matrix(
+        self.program.uniforms['view'].set(
             self.view_matrix)
         self.program.unbind()
 
