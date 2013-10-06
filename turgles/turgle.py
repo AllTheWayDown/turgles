@@ -9,10 +9,11 @@ class Turgle(object):
     Mainly contains methods for maniuplating the render data.
     """
 
-    def __init__(self, renderer, model):
+    def __init__(self, renderer, model, color, shape):
         self.renderer = renderer
         self.model = model
-        self._shape = 'classic'
+        self.color = color
+        self._shape = shape
 
     def shape(self, shape=None):
         """We need to shift buffers in order to change shape"""
@@ -56,17 +57,17 @@ class Turgle(object):
     def color(self, *args):
         n = len(args)
         if n == 0:
-            return tuple(self.model.data[8:10]), (0, 0, 0)
+            return tuple(self.color[0:3]), tuple(self.color[4:7])
         if n == 1:
             # either a colorstr or tuple
             values = self._get_color_values(args[0])
-            self.model.data[8:10] = values
-            # TODO: set pencolor
+            self.color[0:3] = values
+            self.color[4:7] = values
         elif n == 3:
             # single color, rgb
             values = self._get_color_values(args)
-            self.model.data[8:10] = values
-            # TODO: set pencolor
+            self.color[0:3] = values
+            self.color[4:7] = values
         elif n == 2:
             # two separate colors
             self.pencolor(args[0])
@@ -75,39 +76,36 @@ class Turgle(object):
             raise Exception("Invalid color arguments")
 
     def pencolor(self, *args):
+        #TODO: store string names
         if len(args) == 0:
-            #TODO: change to pencolor
-            return tuple(self.model.data[8:11])
+            return tuple(self.model.data[0:3])
         elif len(args) == 1:
             color_vals = self._get_color_values(args[0])
         else:
             # rgb params
             color_vals = self._get_color_values(args)
-        #TODO change to pencolor
-        self.model.data[8:11] = color_vals
+        self.model.data[0:3] = color_vals
 
     def fillcolor(self, *args):
+        #TODO: store string names
         if len(args) == 0:
-            return tuple(self.model.data[8:11])
+            return tuple(self.color[4:7])
         elif len(args) == 1:
             color_vals = self._get_color_values(args[0])
         else:
             # rgb params
             color_vals = self._get_color_values(args)
-        self.model.data[8:11] = color_vals
+        self.color[4:7] = color_vals
 
     def hideturtle(self):
-        # HAAAAAACCKK
-        self._set_color = self.model.data[8:10]
-        self.pencolor('#ffffff')
+        # TODO
+        pass
 
     ht = hideturtle
 
     def showturtle(self):
-        # HAAAAAACCKK
-        if self._set_color:
-            self.model.data[8:10] = self._set_color
-        self._set_color = None
+        # TODO
+        pass
 
     st = showturtle
 
@@ -125,8 +123,11 @@ class Turgle(object):
 
     pu = up = penup
 
-    def pensize(self, size):
-        pass
+    def pensize(self, size=None):
+        if size is None:
+            return self.color[8]
+        else:
+            self.color[8] = size
 
     width = pensize
 

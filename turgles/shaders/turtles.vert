@@ -3,32 +3,50 @@ uniform float world_scale;
 uniform mat4 projection;
 uniform mat4 view;
 
-attribute vec3 edge;
-attribute vec4 turtle1; // x, y, scale x, scale y
-attribute vec4 turtle2; // degrees, speed, cos, sin
-attribute vec4 turtle_fill_color; // rgba
+// instanced turtle data
+attribute mat4 turtle_model;
+attribute mat3 turtle_color;
 
 attribute vec4 vertex;
+attribute vec3 edge;
 
-varying vec4 out_turtle_color;
+varying vec4 out_fill_color;
+varying vec4 out_border_color;
+varying float out_border_thickness;
 varying vec3 out_edge;
 
 void main()
 {
-    float scale_x = turtle1.z / world_scale;
-    float scale_y = turtle1.w / world_scale;
-    float ct = turtle2.z;
-    float st = turtle2.w;
+    float x = turtle_model[0][0];
+    float y = turtle_model[0][1];
+    float scale_x = turtle_model[0][2] / world_scale;
+    float scale_y = turtle_model[0][3] / world_scale;
+    float ct = turtle_model[1][2];
+    float st = turtle_model[1][3];
+
     // hand-rolled 2d scale/transform/rotate in row-major format
     mat4 model = transpose(mat4(
-        ct * scale_x, -st * scale_y,  0.0, turtle1.x / world_scale,
-        st * scale_x,  ct * scale_y,  0.0, turtle1.y / world_scale,
+        ct * scale_x, -st * scale_y,  0.0, x / world_scale,
+        st * scale_x,  ct * scale_y,  0.0, y / world_scale,
         0.0, 0.0, 0.0, 0.0,
         0.0, 0.0, 0.0, 1.0
     ));
     mat4 transform = projection * view * model;
     vec4 world_vertex = transform * vertex;
     gl_Position = world_vertex;
-    out_turtle_color = turtle_fill_color;
-    out_edge = edge * world_vertex.w * turtle1.z;
+    
+    out_border_color = vec4(
+        turtle_color[0][0],
+        turtle_color[0][1],
+        turtle_color[0][2],
+        turtle_color[1][0]
+    );
+    out_fill_color =  vec4(
+        turtle_color[1][1],
+        turtle_color[1][2],
+        turtle_color[2][0],
+        turtle_color[2][1]
+    );
+    out_border_thickness = turtle_color[2][2];
+    out_edge = edge; // * world_vertex.w * z;
 }

@@ -7,6 +7,7 @@ import pyglet
 from pyglet.window import key
 
 from turgles.buffer import BufferManager
+from turgles.memory import TURTLE_MODEL_DATA_SIZE, TURTLE_COLOR_DATA_SIZE
 from turgles.geometry import SHAPES
 from turgles.turgle import Turgle
 from turgles.gl.api import (
@@ -172,14 +173,19 @@ class Renderer(object):
         for buffer in self.manager.buffers.values():
             if buffer.count > 0:
                 vao = self.vao[buffer.shape]
-                vao.render(buffer.data, buffer.count)
+                vao.render(buffer.model, buffer.color, buffer.count)
         if flip:
             self.window.flip()
 
     # ninjaturtle engine interface
-    def create_turtle(self, model, shape='classic'):
-        model.backend = Turgle(self, model)
-        model.data = self.manager.create_turtle(model.id, shape, model.data)
+    def create_turtle(self, model, init, shape='classic'):
+        model_init = init[:TURTLE_MODEL_DATA_SIZE]
+        color_init = init[TURTLE_MODEL_DATA_SIZE:]
+        assert len(color_init) == TURTLE_COLOR_DATA_SIZE
+        data, color = self.manager.create_turtle(
+            model.id, shape, model_init, color_init)
+        model.data = data
+        model.backend = Turgle(self, model, color, shape)
 
     # ninjaturtle engine interface
     def destroy_turtle_data(self, id):

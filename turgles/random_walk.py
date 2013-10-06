@@ -4,7 +4,7 @@ from random import random
 from math import radians, sin, cos
 
 from turgles.config import speed, degrees, world_width, world_height
-from turgles.memory import ffi
+from turgles.memory import ffi, TURTLE_MODEL_DATA_SIZE
 
 half_w = world_width // 2
 half_h = world_height // 2
@@ -14,24 +14,22 @@ ffi.cdef(
 )
 fast = ffi.dlopen('./libfast.so')
 
-turtle_data_size = 8
-
 
 def fast_update(dt, buffers):
     magnitude = speed * dt
     for b in buffers:
         fast.random_walk_all(
-            b.data, b.count, magnitude, half_w, half_h, degrees)
+            b.model.data, b.count, magnitude, half_w, half_h, degrees)
 
 
 def slow_update(dt, buffers):
     magnitude = speed * dt
     for b in buffers:
-        walk(b.data, b.count, magnitude, half_w, degrees)
+        walk(b.model.data, b.count, magnitude, half_w, degrees)
 
 
 def walk(data, size, magnitude, scale, degress):
-    for x in range(0, size * turtle_data_size, turtle_data_size):
+    for x in range(0, size * TURTLE_MODEL_DATA_SIZE, TURTLE_MODEL_DATA_SIZE):
         y = x + 1
         a = x + 4
         angle = data[a]

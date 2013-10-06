@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define TURTLE_DATA_SIZE 12
+#define TURTLE_DATA_SIZE 16
 
 void random_walk(float *x, float magnitude, float half_w, float half_h, float degrees)
 

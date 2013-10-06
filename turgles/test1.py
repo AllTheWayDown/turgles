@@ -18,7 +18,7 @@ from turgles.config import (
     num_turtles,
     turtle_size,
 )
-from turgles.random_walk import fast_update
+from turgles.random_walk import fast_update as _update
 
 if len(sys.argv) > 1:
     num_turtles = int(sys.argv[1])
@@ -26,22 +26,37 @@ if len(sys.argv) > 2:
     turtle_size = float(sys.argv[2])
 
 
-def gen_world(n):
-    for i in range(n):
-        d = random() * 360.0
-        t = radians(d)
-        yield random() * world_width - world_width//2
-        yield random() * world_height - world_height//2
-        yield turtle_size  # * random() + 1.0
-        yield turtle_size  # * random() + 1.0
-        yield d
-        yield 0.0
-        yield cos(t)
-        yield sin(t)
-        yield random()  # r
-        yield random()  # g
-        yield random()  # b
-        yield 1.0       # alpha
+def gen_turtle():
+    d = random() * 360.0
+    t = radians(d)
+    r, g, b = random(), random(), random()
+    return [
+        random() * world_width - world_width//2,
+        random() * world_height - world_height//2,
+        turtle_size,  # * random() + 1.0
+        turtle_size,  # * random() + 1.0
+        d,  # heading
+        d,  # orientation
+        cos(t),  # cos(heading)
+        sin(t),  # sin(heading)
+        cos(t),  # cos(orientation)
+        sin(t),  # sin(orientation)
+        3.0,    # speed
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        r,
+        g,
+        b,
+        1.0,       # alpha
+        1-r,
+        1-g,
+        1-b,
+        1.0,       # alpha
+        1.0,       # width
+    ]
 
 
 shapes = [
@@ -58,8 +73,6 @@ n = num_turtles // len(shapes)
 renderer = Renderer(
     world_width,
     world_height,
-    buffer_size=n,
-    samples=16,
 )
 
 
@@ -71,42 +84,29 @@ for shape in shapes:
     for i in range(n):
         model = Model()
         model.id = ID
-        model.data = list(gen_world(1))
-        renderer.create_turtle(model, shape)
+        renderer.create_turtle(model, gen_turtle(), shape)
         ID += 1
 
 
 @renderer.window.event
 def on_draw():
-    renderer.render(flip=False)
+    with measure('render'):
+        renderer.render(flip=False)
 
 
 def update(dt):
     with measure("update"):
-        fast_update(dt, renderer.manager.buffers.values())
+        _update(dt, renderer.manager.buffers.values())
 
 
-# patch idle func to measure full draw time
-def idle():
-    self = pyglet.app.event_loop
-    app = pyglet.app
-    dt = self.clock.update_time()
-    redraw_all = self.clock.call_scheduled_functions(dt)
+_flip = renderer.window.flip
 
-    # Redraw all windows
-    for window in app.windows:
-        if redraw_all or (window._legacy_invalid and window.invalid):
-            with measure("full draw"):
-                window.switch_to()
-                with measure("event"):
-                    window.dispatch_event('on_draw')
-                with measure("flip"):
-                    window.flip()
-                window._legacy_invalid = False
 
-    # Update timout
-    return self.clock.get_sleep_time(True)
+def flip():
+    with measure('flip'):
+        _flip()
+
+renderer.window.flip = flip
 
 pyglet.clock.schedule_interval(update, 1/30)
-pyglet.app.event_loop.idle = idle
 pyglet.app.run()
