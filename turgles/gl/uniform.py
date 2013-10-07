@@ -39,6 +39,8 @@ from turgles.gl.api import (
     glGetUniformLocation,
 )
 
+from turgles.memory import FFI, to_float_pointer, to_int_pointer
+
 
 class UniformError(Exception):
     pass
@@ -121,10 +123,11 @@ class Uniform(object):
         self.location = glGetUniformLocation(
             program_id, self.name.encode('utf8'))
         # unpack type constant
-        if self.type in self.UNIFORM_TYPES:
-            self.item_type, self.length = self.UNIFORM_TYPES[self.type]
-        else:
-            self.item_type, self.length = self.UNIFORM_MATRIX_TYPES[self.type]
+        self.item_type, self.length = self.UNIFORM_TYPES[self.type]
+        if self.item_type == GLfloat:
+            self.ctypes_converter = to_float_pointer
+        elif self.item_type == GLint:
+            self.ctypes_converter = to_int_pointer
 
         # ctypes type to use
         self.ctype = self.item_type * self.length
@@ -156,6 +159,9 @@ class Uniform(object):
             if len(data) != self.length * self.size:
                 raise UniformError("uniform '%s' is of length %d, not %d" % (
                     self.name, self.length, len(data)))
-            self._setterv(
-                self.location, self.size, GL_FALSE, self.ctype(*data)
-            )
+            if isinstance(data, FFI.CData):
+                cdata = self.ctypes_converter(data)
+            else:
+                # WARNING copies data, because ctypes. Send ffi data for speed
+                cdata = self.ctype(*data)
+            self._setterv(self.location, self.size, GL_FALSE, cdata)

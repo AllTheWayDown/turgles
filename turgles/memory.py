@@ -1,3 +1,4 @@
+import ctypes
 from cffi import FFI
 ffi = FFI()
 
@@ -81,9 +82,18 @@ def create_vertex_buffer(init):
     return ffi.new('float[]', init)
 
 
-def to_pointer(ctype):
+def to_raw_pointer(data):
+    """Returns the address in memory as an int for ffi cdata"""
     #TODO support 32bit systems?
-    return int(ffi.cast('long', ctype))
+    return int(ffi.cast('long', data))
+
+
+def to_float_pointer(data):
+    return ctypes.pointer(ctypes.c_float.from_address(to_raw_pointer(data)))
+
+
+def to_int_pointer(data):
+    return ctypes.pointer(ctypes.c_int.from_address(to_raw_pointer(data)))
 
 
 def create_matrix():

@@ -11,7 +11,7 @@ from turgles.gl.api import (
     glVertexAttribPointer,
 )
 
-from turgles.memory import to_pointer, sizeof
+from turgles.memory import to_raw_pointer, sizeof
 from turgles.gl.util import GL_TYPEMAP
 
 
@@ -52,14 +52,14 @@ class Buffer(object):
                 self.array_type,
                 0,
                 size,
-                to_pointer(data)
+                to_raw_pointer(data)
             )
         else:
             # buffer size has changed - need to allocate new buffer in the GPU
             glBufferData(
                 self.array_type,
                 size,
-                to_pointer(data),
+                to_raw_pointer(data),
                 self.draw_type
             )
             self.buffer_size = size

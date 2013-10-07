@@ -42,6 +42,11 @@ class ChunkBuffer(object):
             offset = i * chunk_size
             yield self.data[offset:offset + chunk_size]
 
+    def slice(self, size):
+        slice = self.chunk_size * size
+        for i in range(0, len(self.data), slice):
+            yield self.data[i:i + slice]
+
     def get(self, index):
         """Get a chunk by index"""
         assert index <= self.count

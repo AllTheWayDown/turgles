@@ -5,21 +5,18 @@ import pkg_resources
 
 from turgles.geometry import SHAPES
 from turgles.gl.api import (
-    GL_ELEMENT_ARRAY_BUFFER,
     GL_STATIC_DRAW,
     GL_TRIANGLES,
-    GL_UNSIGNED_SHORT,
-    GLushort,
     GLfloat,
     glGetAttribLocation,
     glDrawArrays,
-    glGetProgramiv, GLint,
-    GL_ACTIVE_ATTRIBUTES,
 )
 from turgles.renderer import Renderer
-from turgles.gl.buffer import VertexBuffer, Buffer
-from turgles.memory import TURTLE_DATA_SIZE
+from turgles.gl.buffer import VertexBuffer
 from turgles.util import measure
+from turgles import memory
+
+BATCH_SIZE = 145  # see shader
 
 
 class ESTurtleShapeRenderer(object):
@@ -32,55 +29,60 @@ class ESTurtleShapeRenderer(object):
         self.name = name
         self.program = program
         self.geometry = geometry
+        # size of batched draw calls
+        self.batch = BATCH_SIZE
 
         self.vertex_attr = glGetAttribLocation(self.program.id, b"vertex")
         self.edge_attr = glGetAttribLocation(self.program.id, b"edge")
-        count = GLint(0)
-        glGetProgramiv(self.program.id, GL_ACTIVE_ATTRIBUTES, count)
+        self.index_attr = glGetAttribLocation(self.program.id, b"index")
 
         # load/bind/configure vertex buffer
         self.vertex_buffer = VertexBuffer(GLfloat, GL_STATIC_DRAW)
-        self.vertex_buffer.load(geometry.edges)
+        batched_edges = list(geometry.edges) * self.batch
+        self.vertex_buffer.load(memory.create_vertex_buffer(batched_edges))
         self.vertex_buffer.partition(
             [(self.vertex_attr, 4), (self.edge_attr, 3)]
         )
 
-        # load/bind index buffer
-        #self.index_buffer = Buffer(
-        #    GL_ELEMENT_ARRAY_BUFFER, GLushort, GL_STATIC_DRAW
-        #)
-        #self.index_buffer.load(geometry.indices)
-        #self.index_buffer.bind()
+        uniform_indicies = []
+        for i in range(self.batch):
+            uniform_indicies.extend([i] * geometry.num_vertex)
 
-    def render(self, turtle_data, num_turtles):
+        indices_buffer = memory.create_vertex_buffer(uniform_indicies)
+        self.indices_buffer = VertexBuffer(GLfloat, GL_STATIC_DRAW)
+        self.indices_buffer.load(indices_buffer)
+        self.indices_buffer.set(self.index_attr, 1)
+
+    def render(self, model, color, num_turtles):
         self.program.bind()
 
         # no VAOs so have to set manually
         self.vertex_buffer.partition(
             [(self.vertex_attr, 4), (self.edge_attr, 3)]
         )
-        #self.index_buffer.bind()
+        self.indices_buffer.set(self.index_attr, 1)
 
-        a = self.program.uniforms['turtle1']
-        b = self.program.uniforms['turtle2']
-        c = self.program.uniforms['turtle_fill_color']
+        model_uniform = self.program.uniforms['turtle_model_array[0]']
+        color_uniform = self.program.uniforms['turtle_color_array[0]']
+
+        model_iter = model.slice(self.batch)
+        color_iter = color.slice(self.batch)
 
         with measure("loop"):
-            for i in range(0, len(turtle_data), TURTLE_DATA_SIZE):
+            for model_slice, color_slice in zip(model_iter, color_iter):
+                # load batch of turtle data
                 with measure('load'):
-                    a.set(*tuple(turtle_data[i:i+4]))
-                    b.set(*tuple(turtle_data[i+4:i+8]))
-                    c.set(*tuple(turtle_data[i+8:i+12]))
+                    model_uniform.set(model_slice)
+                    color_uniform.set(color_slice)
 
                 with measure('draw'):
                     glDrawArrays(
                         GL_TRIANGLES,
                         0,
-                        len(self.geometry.edges) // 7,
+                        len(self.geometry.edges) // 7 * self.batch,
                     )
 
         self.vertex_buffer.unbind()
-        #self.index_buffer.unbind()
         self.program.unbind()
 
 

@@ -73,6 +73,7 @@ n = num_turtles // len(shapes)
 renderer = Renderer(
     world_width,
     world_height,
+    buffer_size=num_turtles,
 )
 
 
