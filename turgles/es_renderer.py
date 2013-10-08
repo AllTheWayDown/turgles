@@ -16,7 +16,7 @@ from turgles.gl.buffer import VertexBuffer
 from turgles.util import measure
 from turgles import memory
 
-BATCH_SIZE = 145  # see shader
+BATCH_SIZE = 35  # see shader
 
 
 class ESTurtleShapeRenderer(object):

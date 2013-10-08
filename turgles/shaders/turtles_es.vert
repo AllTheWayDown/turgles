@@ -5,9 +5,11 @@
 // ARRAY_SIZE = (GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB - STATIC_UNIFORMS) // ARRAY_UNIFORMS
 // where STATIC_UNIFORMS is the memory cost of normal uniforms, currentlt 16 + 16 + 1
 // and ARRAY_UNIFORMS is memory costs of all array members, currently 16 + 12
+// and GL_MAX_VERTEX_UNIFORM_COMPONENTS_ARB is variable, but is guaranteed to
+// be at least 1024 on ES2 hardware[1]
 //
 #ifndef ARRAY_SIZE
-#define ARRAY_SIZE 145
+#define ARRAY_SIZE 35
 #endif
 
 uniform float world_scale;  // cost 16
