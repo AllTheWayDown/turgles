@@ -144,9 +144,10 @@ class Uniform(object):
         self._getter(self.program_id, self.location, params)
         return params
 
-    def set(self, *data):
+    def set(self, *data, **kwargs):
         n = len(data)
         assert data
+        size = kwargs.get('size', self.size)
         if n > 1 or self.length == 1:
             # use non-array setter
             if n != self.length:
@@ -156,7 +157,7 @@ class Uniform(object):
         else:
             # use array based setter
             data = data[0]
-            if len(data) != self.length * self.size:
+            if len(data) != self.length * size:
                 raise UniformError("uniform '%s' is of length %d, not %d" % (
                     self.name, self.length, len(data)))
             if isinstance(data, FFI.CData):
@@ -164,4 +165,4 @@ class Uniform(object):
             else:
                 # WARNING copies data, because ctypes. Send ffi data for speed
                 cdata = self.ctype(*data)
-            self._setterv(self.location, self.size, GL_FALSE, cdata)
+            self._setterv(self.location, size, GL_FALSE, cdata)

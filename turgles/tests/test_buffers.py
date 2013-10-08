@@ -122,6 +122,60 @@ class ChunkBufferTestCase(TestCase):
         # check reuses previously removed turtle's space
         self.assert_turtle_data(buffer, 2, [4] * TURTLE_MODEL_DATA_SIZE)
 
+    def make_slices(self, size, array_size=20):
+        buffer = ChunkBuffer(array_size, TURTLE_MODEL_DATA_SIZE)
+        for i in range(array_size):
+            buffer.new([i+1] * TURTLE_MODEL_DATA_SIZE)
+
+        return buffer.slice(size)
+
+    def test_slice_size_multiple(self):
+        slices = self.make_slices(10, 20)
+        size, slice = next(slices)
+        self.assertEqual(size, 10)
+        self.assertEqual(
+            list(slice[0:TURTLE_MODEL_DATA_SIZE]),
+            [1] * TURTLE_MODEL_DATA_SIZE
+        )
+        size, slice = next(slices)
+        self.assertEqual(size, 10)
+        self.assertEqual(
+            list(slice[0:TURTLE_MODEL_DATA_SIZE]),
+            [11] * TURTLE_MODEL_DATA_SIZE
+        )
+        with self.assertRaises(StopIteration):
+            next(slices)
+
+    def test_slice_size_remainder(self):
+        slices = self.make_slices(15, 20)
+        size, slice = next(slices)
+        self.assertEqual(size, 15)
+        self.assertEqual(
+            list(slice[0:TURTLE_MODEL_DATA_SIZE]),
+            [1] * TURTLE_MODEL_DATA_SIZE
+        )
+        size, slice = next(slices)
+        self.assertEqual(size, 5)
+        self.assertEqual(
+            list(slice[0:TURTLE_MODEL_DATA_SIZE]),
+            [16] * TURTLE_MODEL_DATA_SIZE
+        )
+        with self.assertRaises(StopIteration):
+            next(slices)
+
+    def test_slice_size_only_one(self):
+        slices = self.make_slices(20, 10)
+        size, slice = next(slices)
+        self.assertEqual(size, 10)
+        self.assertEqual(
+            list(slice[0:TURTLE_MODEL_DATA_SIZE]),
+            [1] * TURTLE_MODEL_DATA_SIZE
+        )
+        with self.assertRaises(StopIteration):
+            next(slices)
+
+
+
 
 class ShapeBufferTestCase(TestCase):
 

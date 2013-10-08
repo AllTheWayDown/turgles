@@ -4,7 +4,7 @@ import sys
 
 logging.basicConfig()
 
-from random import random
+from random import random, choice
 from math import radians, cos, sin
 import pyglet
 
@@ -68,7 +68,7 @@ shapes = [
     'arrow',
 ]
 
-n = num_turtles // len(shapes)
+n, m = divmod(num_turtles, len(shapes))
 
 renderer = Renderer(
     world_width,
@@ -87,6 +87,13 @@ for shape in shapes:
         model.id = ID
         renderer.create_turtle(model, gen_turtle(), shape)
         ID += 1
+
+extra_shapes = choice(shapes)
+for i in range(m):
+    model = Model()
+    model.id = ID
+    renderer.create_turtle(model, gen_turtle(), shape)
+    ID += 1
 
 
 @renderer.window.event

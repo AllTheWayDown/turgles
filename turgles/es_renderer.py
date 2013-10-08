@@ -67,19 +67,21 @@ class ESTurtleShapeRenderer(object):
 
         model_iter = model.slice(self.batch)
         color_iter = color.slice(self.batch)
+        slices = zip(model_iter, color_iter)
 
         with measure("loop"):
-            for model_slice, color_slice in zip(model_iter, color_iter):
+            for (msize, model_slice), (csize, color_slice) in slices:
+                assert msize == csize
                 # load batch of turtle data
                 with measure('load'):
-                    model_uniform.set(model_slice)
-                    color_uniform.set(color_slice)
+                    model_uniform.set(model_slice, size=msize)
+                    color_uniform.set(color_slice, size=msize)
 
                 with measure('draw'):
                     glDrawArrays(
                         GL_TRIANGLES,
                         0,
-                        len(self.geometry.edges) // 7 * self.batch,
+                        len(self.geometry.edges) // 7 * msize,
                     )
 
         self.vertex_buffer.unbind()

@@ -44,8 +44,17 @@ class ChunkBuffer(object):
 
     def slice(self, size):
         slice = self.chunk_size * size
-        for i in range(0, len(self.data), slice):
-            yield self.data[i:i + slice]
+        data_size = len(self.data)
+        num_slices, last_slice = divmod(data_size, slice)
+        last_slice_index = num_slices * slice
+        for i in range(0, last_slice_index, slice):
+            yield size, self.data[i:i + slice]
+        if last_slice:
+            # last <size remainder
+            assert last_slice_index % self.chunk_size == 0
+            remainder = data_size - last_slice_index
+            yield (remainder // self.chunk_size,
+                   self.data[last_slice_index:data_size])
 
     def get(self, index):
         """Get a chunk by index"""
@@ -132,6 +141,15 @@ class ShapeBuffer(object):
     def __iter__(self):
         for model, color in zip(self.model, self.color):
             yield model, color
+
+    def slice(self, size):
+        model_iter = self.model.slice(size)
+        color_iter = self.color.slice(size)
+        while 1:
+            msize, model = next(model_iter)
+            csize, color = next(color_iter)
+            assert msize == csize
+            yield msize, model, color
 
     def _update_id_map(self, id, index):
         self.id_to_index[id] = index
