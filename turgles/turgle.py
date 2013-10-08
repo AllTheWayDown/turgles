@@ -19,7 +19,9 @@ class Turgle(object):
         """We need to shift buffers in order to change shape"""
         if shape is None:
             return self._shape
-        self.model.data = self.renderer.manager.set_shape(self.model.id, shape)
+        data, color = self.renderer.manager.set_shape(self.model.id, shape)
+        self.model.data = data
+        self.color = color
         self._shape = shape
 
     def shapesize(self, stretch_wid=None, stretch_len=None, outline=None):
@@ -78,13 +80,13 @@ class Turgle(object):
     def pencolor(self, *args):
         #TODO: store string names
         if len(args) == 0:
-            return tuple(self.model.data[0:3])
+            return tuple(self.color[0:3])
         elif len(args) == 1:
             color_vals = self._get_color_values(args[0])
         else:
             # rgb params
             color_vals = self._get_color_values(args)
-        self.model.data[0:3] = color_vals
+        self.color[0:3] = color_vals
 
     def fillcolor(self, *args):
         #TODO: store string names
