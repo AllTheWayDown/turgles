@@ -2,7 +2,8 @@ TurGLES
 =======
 
 An OpenGL backend for rendering turtles. Designed to be used as backend for
-`NinjaTurtle<http://www.github.com/AllTheWayDown/ninjaturtle>`_.
+NinjaTurtle_.
+
 
 Status: experimenting, pre-alpha
 
@@ -103,3 +104,4 @@ a random walk, so you are stressing the CPU less.
 
     make
 
+.. _NinjaTurtle: http://www.github.com/AllTheWayDown/ninjaturtle
