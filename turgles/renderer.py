@@ -16,8 +16,6 @@ from turgles.gl.api import (
     GLsizei,
     GL_DEPTH_TEST,
     glEnable,
-    GL_LEQUAL,
-    GL_TRUE,
     glViewport,
     GLint,
     GL_MAX_SAMPLES,

@@ -69,7 +69,6 @@ Command Line Tools.
 
 Install into a virtualenv for best results.
 
-
 .. code::
 
     pip install -r requirements.txt
@@ -80,6 +79,12 @@ Tests
 .. code::
 
     python setup.py test
+
+If you have tox installed you can run tests against 2.7, 3.3, and pypy
+
+.. code::
+
+    tox
 
 Demo
 ----
