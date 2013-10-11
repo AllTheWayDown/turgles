@@ -10,9 +10,10 @@ Status: experimenting, pre-alpha
 Features:
 
  * Fast renderer for a turtle-like world
- * Two OpenGL render methods - ES2.0 compatible for older hardware, and
-   a faster ES3.0 compatible method for modern OpenGL * Simple 3d camera
- * Scales to 10,000 turtles (the t10k problem)
+ * Two OpenGL render methods: ES2.0 compatible for older hardware/drivers, and
+   a faster ES3.0 compatible method for modern OpenGL
+ * Simple 3d camera
+ * Scales to 10,000 turtles at 60fps (the t10k problem :)
 
 Limitations:
 
