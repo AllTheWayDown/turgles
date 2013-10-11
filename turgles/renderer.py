@@ -12,9 +12,6 @@ from turgles.geometry import SHAPES
 from turgles.turgle import Turgle
 from turgles.gl.api import (
     glClearColor,
-    glDepthFunc,
-    glDepthMask,
-    glDepthRangef,
     glGetIntegerv,
     GLsizei,
     GL_DEPTH_TEST,
@@ -85,9 +82,6 @@ class Renderer(object):
             height=int(height)
         )
         glEnable(GL_DEPTH_TEST)
-        glDepthMask(GL_TRUE)
-        glDepthFunc(GL_LEQUAL)
-        glDepthRangef(0.0, 1.0)
 
         self.speed = 1
 

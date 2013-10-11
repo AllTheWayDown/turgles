@@ -32,8 +32,8 @@ setup(
     ],
     test_suite='turgles.tests',
     install_requires=[
-        'cffi==0.7',
-        'pycparser==2.09.1',
+        'cffi>=0.7,<0.8',
+        'pycparser>=2.10,<3.0',
         'pyglet==1.2alpha1',
     ],
 )

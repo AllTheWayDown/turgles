@@ -8,8 +8,12 @@ from random import random, choice
 from math import radians, cos, sin
 import pyglet
 
-#from turgles.es_renderer import ES2Renderer as Renderer
-from turgles.renderer import Renderer
+# TODO detect supported features and choose automatically
+# simpler more compliant renderer
+from turgles.es_renderer import ES2Renderer as Renderer
+# more powerful modern opengl renderer
+#from turgles.renderer import Renderer
+
 from turgles.util import measure
 
 from turgles.config import (
@@ -18,7 +22,7 @@ from turgles.config import (
     num_turtles,
     turtle_size,
 )
-from turgles.random_walk import fast_update as _update
+from turgles.random_walk import update as _update
 
 if len(sys.argv) > 1:
     num_turtles = int(sys.argv[1])

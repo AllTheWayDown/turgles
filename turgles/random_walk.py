@@ -12,20 +12,26 @@ half_h = world_height // 2
 ffi.cdef(
     "void random_walk_all(float*, int, float, float, float, float);"
 )
-fast = ffi.dlopen('./libfast.so')
-
-
-def fast_update(dt, buffers):
-    magnitude = speed * dt
-    for b in buffers:
-        fast.random_walk_all(
-            b.model.data, b.count, magnitude, half_w, half_h, degrees)
+try:
+    fast = ffi.dlopen('./libfast.so')
+except:
+    fast = None
 
 
 def slow_update(dt, buffers):
     magnitude = speed * dt
     for b in buffers:
         walk(b.model.data, b.count, magnitude, half_w, degrees)
+
+if fast:
+    def fast_update(dt, buffers):
+        magnitude = speed * dt
+        for b in buffers:
+            fast.random_walk_all(
+                b.model.data, b.count, magnitude, half_w, half_h, degrees)
+    update = fast_update
+else:
+    update = slow_update
 
 
 def walk(data, size, magnitude, scale, degress):

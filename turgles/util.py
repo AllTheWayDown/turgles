@@ -1,3 +1,6 @@
+# coding=utf8
+from __future__ import division, print_function, absolute_import
+
 import atexit
 import functools
 from time import time
@@ -7,6 +10,7 @@ MEASUREMENTS = defaultdict(list)
 
 
 class measure(object):
+    """Context manager for recording a measurement"""
 
     def __init__(self, name):
         self.name = name
@@ -67,7 +71,7 @@ def stats(data, bins=32, outliers=2):
 
     maxcount = max(hist)
 
-    ticks = ['_', '▂', '▃', '▄', '▅', '▆', '▇']  #, '█']
+    ticks = ['_', '▂', '▃', '▄', '▅', '▆', '▇']  # '█']
 
     graph = []
     for count in hist:
